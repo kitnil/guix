@@ -495,6 +495,7 @@ storage:
 datadir=/var/lib/mysql
 socket=/run/mysqld/mysqld.sock
 port=" (number->string port) "
+max_allowed_packet=16M
 "))))
 
 (define (%mysql-activation config)
