@@ -140,6 +140,7 @@
   #:use-module (gnu packages readline)
   #:use-module (gnu packages fonts)
   #:use-module (gnu packages speech)
+  #:use-module (gnu packages valgrind)
   #:use-module (gnu packages virtualization)
   #:use-module (gnu packages vpn)
   #:use-module (srfi srfi-1))
@@ -7059,4 +7060,57 @@ photo-booth-like software, such as Cheese.")
     (description
      "Cheese uses your webcam to take photos and videos.  Cheese can also
 apply fancy special effects and lets you share the fun with others.")
+    (license license:gpl2+)))
+
+(define-public gnome-software
+  (package
+    (name "gnome-software")
+    (version "3.24.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "mirror://gnome/sources/" name "/"
+                                  (version-major+minor version) "/" name "-"
+                                  version ".tar.xz"))
+              (sha256
+               (base32
+                "1rbbxhli80x3kskln5a8g199pyg6x5mkg9skh9c1146np315wqb9"))))
+    (native-inputs `(("pkg-config" ,pkg-config)))
+    (inputs
+     `(("appstream-glib" ,appstream-glib)
+       ("libarchive" ,libarchive)
+       ("libuuid" ,util-linux)
+
+       ("dbus" ,dbus)
+       ("gettext" ,gettext-minimal)
+       ("glib" ,glib)
+       ("gnome-desktop" ,gnome-desktop)
+       ("gsettings-desktop-schemas" ,gsettings-desktop-schemas)
+       ("gtk+" ,gtk+)
+       ;; TODO: ("gtkspell3" ,gtkspell3)
+       ("iso-codes" ,iso-codes)
+       ("json-glib" ,json-glib)
+       ("libsoup" ,libsoup)
+       ("libsecret" ,libsecret)
+       ("nettle" ,nettle)
+       ("sqlite" ,sqlite)
+       ("valgrind" ,valgrind)
+
+       ;; For test.
+       ("xorg-server" ,xorg-server)))
+    (arguments
+     `(#:tests? #f ; 1 of 1 tests fails because /var/lib/dbus/machine-id
+       #:configure-flags (list "--disable-gtkspell")
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'install 'symlink-iso-codes
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out       (assoc-ref outputs "out"))
+                   (iso-codes (assoc-ref inputs "iso-codes"))
+                   (xml       "/share/xml"))
+               (symlink (string-append iso-codes xml)
+                        (string-append out       xml))))))))
+    (build-system glib-or-gtk-build-system)
+    (home-page "https://wiki.gnome.org/Apps/Software")
+    (synopsis "GNOME Software Tools")
+    (description "GNOME Software Tools")
     (license license:gpl2+)))
