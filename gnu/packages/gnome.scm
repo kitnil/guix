@@ -7048,3 +7048,59 @@ photo-booth-like software, such as Cheese.")
      "Cheese uses your webcam to take photos and videos.  Cheese can also
 apply fancy special effects and lets you share the fun with others.")
     (license license:gpl2+)))
+
+(define-public komorebi
+  (package
+    (name "komorebi")
+    (version "2.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/iabem97/komorebi"
+                                  "/archive/" "v" version ".tar.gz"))
+              (sha256
+               (base32
+                "1gnrm1y19il5s31z3zdkspv0ibir07g3b105qx2cf5dr2gpizyix"))))
+    (build-system cmake-build-system)
+    (native-inputs
+     `(("pkg-config" ,pkg-config)
+       ("vala" ,vala)))
+    (propagated-inputs
+     `(("gnome-video-effects" ,gnome-video-effects)))
+    (inputs
+     `(("glib" ,glib)
+       ("gstreamer" ,gstreamer)
+       ("gst-plugins-base" ,gst-plugins-base)
+       ("gtk+" ,gtk+)
+       ("clutter" ,clutter)
+       ("clutter-gst" ,clutter-gst)
+       ("clutter-gtk" ,clutter-gtk)
+       ("libgee" ,libgee)
+       ("libgtop" ,libgtop)
+       ("libwnck" ,libwnck)))
+    (arguments
+     ;; No tests.
+     `(#:tests? #f
+       #:configure-flags (list (string-append "-DCMAKE_BUILD_TYPE=" "Release"))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'fix-paths
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (share (string-append out "/share")))
+               (for-each (lambda (file)
+                           (substitute* (find-files "." file)
+                             (("System/Applications/")
+                              (string-append out "/bin/"))
+                             (("System/Resources/")
+                              (string-append out "/share/"))))
+                         (list "^.*.vala$" "postinst" "wallpapercreator.desktop"
+                               "komorebi.desktop" "CMakeLists.txt"))
+               (substitute* "CMakeLists.txt"
+                 (("/usr/share/fonts") (string-append share "/fonts"))
+                 (("/usr/share/applications") (string-append share
+                                                             "/applications")))
+               #t))))))
+    (home-page "https://github.com/iabem97/komorebi")
+    (synopsis "A beautiful and customizable desktop manager for Linux")
+    (description "A beautiful and customizable desktop manager for Linux.")
+    (license license:gpl3+)))
