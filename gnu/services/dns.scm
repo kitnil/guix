@@ -31,7 +31,10 @@
   #:use-module (srfi srfi-35)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
-  #:export (knot-service-type
+  #:export (zone-file
+            zone-entry
+
+            knot-service-type
             knot-acl-configuration
             knot-key-configuration
             knot-keystore-configuration
@@ -39,37 +42,15 @@
             knot-remote-configuration
             knot-policy-configuration
             knot-configuration
+
             define-zone-entries
-            zone-file
-            zone-entry))
+            bind-service-type
+            bind-configuration))
 
+
 ;;;
-;;; Knot DNS.
+;;; Zones.
 ;;;
-
-(define-record-type* <knot-key-configuration>
-  knot-key-configuration make-knot-key-configuration
-  knot-key-configuration?
-  (id        knot-key-configuration-id
-             (default ""))
-  (algorithm knot-key-configuration-algorithm
-             (default #f)); one of #f, or an algorithm name
-  (secret    knot-key-configuration-secret
-             (default "")))
-
-(define-record-type* <knot-acl-configuration>
-  knot-acl-configuration make-knot-acl-configuration
-  knot-acl-configuration?
-  (id      knot-acl-configuration-id
-           (default ""))
-  (address knot-acl-configuration-address
-           (default '()))
-  (key     knot-acl-configuration-key
-           (default '()))
-  (action  knot-acl-configuration-action
-           (default '()))
-  (deny?   knot-acl-configuration-deny?
-           (default #f)))
 
 (define-record-type* <zone-entry>
   zone-entry make-zone-entry
@@ -79,7 +60,7 @@
   (ttl   zone-entry-ttl
          (default ""))
   (class zone-entry-class
-         (default "IN"))
+    (default "IN"))
   (type  zone-entry-type
          (default "A"))
   (data  zone-entry-data
@@ -106,6 +87,36 @@
            (default (* 2 7 24 3600)))
   (nx      zone-file-nx
            (default 3600)))
+
+
+;;;
+;;; Knot.
+;;;
+
+(define-record-type* <knot-key-configuration>
+  knot-key-configuration make-knot-key-configuration
+  knot-key-configuration?
+  (id        knot-key-configuration-id
+             (default ""))
+  (algorithm knot-key-configuration-algorithm
+             (default #f)); one of #f, or an algorithm name
+  (secret    knot-key-configuration-secret
+             (default "")))
+
+(define-record-type* <knot-acl-configuration>
+  knot-acl-configuration make-knot-acl-configuration
+  knot-acl-configuration?
+  (id      knot-acl-configuration-id
+           (default ""))
+  (address knot-acl-configuration-address
+           (default '()))
+  (key     knot-acl-configuration-key
+           (default '()))
+  (action  knot-acl-configuration-action
+           (default '()))
+  (deny?   knot-acl-configuration-deny?
+           (default #f)))
+
 (define-record-type* <knot-keystore-configuration>
   knot-keystore-configuration make-knot-keystore-configuration
   knot-keystore-configuration?
@@ -585,9 +596,214 @@
 (define knot-service-type
   (service-type (name 'knot)
                 (extensions
-                  (list (service-extension shepherd-root-service-type
-                                           knot-shepherd-service)
-                        (service-extension activation-service-type
-                                           knot-activation)
-                        (service-extension account-service-type
-                                           (const %knot-accounts))))))
+                 (list (service-extension shepherd-root-service-type
+                                          knot-shepherd-service)
+                       (service-extension activation-service-type
+                                          knot-activation)
+                       (service-extension account-service-type
+                                          (const %knot-accounts))))))
+
+
+;;;
+;;; Bind.
+;;;
+
+(define-record-type* <bind-options-configuration>
+  bind-options-configuration make-bind-options-configuration
+  bind-options-configuration?
+  (user             bind-options-configuration-user             ; string
+                    (default "named"))
+  (group            bind-options-configuration-group            ; string
+                    (default "named"))
+  (run-directory    bind-options-configuration-run-directory    ; string
+                    (default "/var/run/named"))
+  (pid-file         bind-options-configuration-pid-file         ; string
+                    (default "/var/run/named/named.pid"))
+  (log-file         bind-options-configuration-log-file         ; string
+                    (default "/var/log/named.log"))
+  (listen-v4        bind-options-configuration-listen-v4        ; string
+                    (default "0.0.0.0"))
+  (listen-v6        bind-options-configuration-listen-v6        ; string
+                    (default "::"))
+  (listen-port      bind-options-configuration-listen-port      ; integer
+                    (default 53))
+  (allow-recursion? bind-options-configuration-allow-recursion? ; list
+                    (default (list "127.0.0.1")))
+  (allow-transfer?  bind-options-configuration-allow-transfer?  ; list
+                    (default (list "none")))
+  (allow-update?    bind-options-configuration-allow-update?    ; list
+                    (default (list "none")))
+  (version          bind-options-configuration-version          ; string
+                    (default "none"))
+  (hostname         bind-options-configuration-hostname         ; string
+                    (default (gethostname)))
+  (server-id        bind-options-configuration-server-id        ; string
+                    (default "none")))
+
+(define-record-type* <bind-zone-configuration>
+  bind-zone-configuration make-bind-zone-configuration
+  bind-zone-configuration?
+  (network bind-zone-configuration-network ; string
+           (default "localhost"))
+  (class   bind-zone-configuration-class   ; string
+           (default "IN"))
+  (type    bind-zone-configuration-type    ; string
+           (default "master"))
+  (file    bind-zone-configuration-file    ; <zone-file>
+           (default (zone-file (origin "@")
+                               (ns "localhost.")
+                               (mail "root.localhost.")
+                               (entries (list (zone-entry
+                                               (name "")
+                                               (ttl  "1D")
+                                               (type "NS")
+                                               (data "localhost."))
+                                              (zone-entry
+                                               (name "localhost.")
+                                               (ttl  "1D")
+                                               (data "127.0.0.1"))))))))
+
+(define-record-type* <bind-configuration-file>
+  bind-configuration-file make-bind-configuration-file
+  bind-configuration-file?
+  ;; <bind-options-configuration>
+  (config-options bind-configuration-file-config-options
+                  (default (bind-options-configuration)))
+  ;; list of <bind-zone-configuration>
+  (config-zones bind-configuration-file-config-zones
+                (default (list (bind-zone-configuration)))))
+
+(define-record-type* <bind-configuration>
+  bind-configuration make-bind-configuration
+  bind-configuration?
+  (config-file bind-configuration-config-file       ; <bind-configuration-file>
+               (default (bind-configuration-file)))
+  (package     bind-configuration-package           ; <package>
+               (default isc-bind)))
+
+(define-gexp-compiler (zone-file-compiler
+                       (file <zone-file>) system target)
+  (match-record
+   file <zone-file>
+   (entries origin ns mail serial refresh retry expiry nx)
+   (apply text-file* (string-append ns "zone")
+          (format #f  "@ IN SOA ~a ~a (~a ~a ~a ~a ~a)\n"
+                  ns mail serial refresh retry expiry nx)
+          (map (lambda (zone-entry)
+                 (match-record
+                  zone-entry <zone-entry> (name ttl class type data)
+                  (format #f "~a ~a ~a ~a ~a\n" name class type ttl data)))
+               entries))))
+
+(define-gexp-compiler (bind-configuration-file-compiler
+                       (file <bind-configuration-file>) system target)
+  (match-record
+   file <bind-configuration-file> (config-options config-zones)
+   (define options-config
+      (match-record
+       config-options <bind-options-configuration>
+       (user group run-directory pid-file log-file listen-v4 listen-v6
+        listen-port allow-recursion? allow-transfer? allow-update?
+        version hostname server-id)
+       (letrec ((block (lambda (statements)
+                         (format #f "{ ~a ;}" (string-join statements "; ")))))
+         (list "options {\n"
+               "    directory \"" run-directory "\";\n"
+               "    pid-file \"" pid-file "\";\n"
+               "    allow-recursion " (block allow-recursion?) ";\n"
+               "    allow-transfer " (block allow-transfer?) ";\n"
+               "    allow-update " (block allow-update?) ";\n"
+               "    version " version ";\n"
+               "    hostname \"" hostname "\";\n"
+               "    server-id " server-id ";\n"
+               "};\n"))))
+
+   (define zones-config
+     (map (lambda (config)
+            (match-record
+             config <bind-zone-configuration> (network class type file)
+             (list "zone \"" network "\" " class " {\n"
+                   "    type " type ";\n"
+                   "    file \"" file "\";\n"
+                   "};\n")))
+          config-zones))
+
+   (apply text-file* "named.conf"
+          (apply string-append options-config)
+          (fold append '() zones-config))))
+
+(define (match-bind-options-configuration bind-configuration-file)
+  "Return `<bind-options-configuration>' from `<bind-configuration-file>'."
+  (match-record
+   bind-configuration-file <bind-configuration-file> (config-options)
+   config-options))
+
+(define (match-bind-configuration-config-file bind-configuration)
+  "Return a `bind-configuration-config-file' from `<bind-configuration>'."
+  (match-record
+   bind-configuration <bind-configuration> (config-file)
+   config-file))
+
+(define (bind-account config)
+  "Return a `<user-group>' from `<bind-configuration>'."
+  (match-record
+   ((compose match-bind-options-configuration
+                   match-bind-configuration-config-file)
+    config)
+   <bind-options-configuration> (user group run-directory)
+   (let ((bind-group group))
+     (list (user-group
+            (name bind-group)
+            (system? #t))
+           (user-account
+            (name user)
+            (group bind-group)
+            (system? #t)
+            (comment "Bind dns server user")
+            (home-directory run-directory)
+            (shell (file-append shadow "/sbin/nologin")))))))
+
+(define (bind-activation config)
+  "Return the activation GEXP for CONFIG."
+  (match-record
+   ((compose match-bind-options-configuration
+             match-bind-configuration-config-file)
+    config)
+   <bind-options-configuration> (user group run-directory)
+   (with-imported-modules '((guix build utils))
+     #~(begin
+         (mkdir-p #$run-directory)
+         (chown #$run-directory
+                (passwd:uid (getpw #$user))
+                (group:gid (getpw #$group)))))))
+
+(define (bind-shepherd-service config)
+  (match-record
+   config
+   <bind-configuration> (config-file package)
+   (match-record
+    (match-bind-options-configuration config-file)
+    <bind-options-configuration> (user group pid-file)
+    (list (shepherd-service
+           (documentation "Run the Bind DNS daemon.")
+           (provision '(bind dns))
+           (requirement '(networking))
+           (start #~(make-forkexec-constructor
+                     (list (string-append #$package "/sbin/named")
+                           "-c" #$config-file)
+                     #:user #$user
+                     #:group #$group
+                     #:pid-file #$pid-file))
+           (stop #~(make-kill-destructor)))))))
+
+(define bind-service-type
+  (service-type (name 'bind)
+                (description "Run the Bind DNS server.")
+                (extensions
+                 (list (service-extension shepherd-root-service-type
+                                          bind-shepherd-service)
+                       (service-extension account-service-type
+                                          bind-account)
+                       (service-extension activation-service-type
+                                          bind-activation)))
+                (default-value (bind-configuration))))

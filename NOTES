@@ -1,0 +1,27 @@
+-*- mode: org -*-
+
+* bind-configuration
+** bind-configuration-config-file
+*** bind-configuration-file
+**** bind-configuration-file-config-options
+***** bind-options-configuration
+****** bind-options-configuration-user
+****** bind-options-configuration-group
+****** bind-options-configuration-run-directory
+****** bind-options-configuration-pid-file
+****** bind-options-configuration-listen-v4
+****** bind-options-configuration-listen-v6
+****** bind-options-configuration-listen-port
+****** bind-options-configuration-allow-recursion?
+****** bind-options-configuration-allow-transfer?
+****** bind-options-configuration-allow-update?
+****** bind-options-configuration-version
+****** bind-options-configuration-hostname
+****** bind-options-configuration-server-id
+**** bind-configuration-file-config-zones
+***** list bind-zone-configuration
+****** bind-zone-configuration-network
+****** bind-zone-configuration-class
+****** bind-zone-configuration-type
+****** bind-zone-configuration-file
+** bind-configuration-package
