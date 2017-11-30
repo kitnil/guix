@@ -43,6 +43,7 @@ Copyright @copyright{} 2017 Maxim Cournoyer@*
 Copyright @copyright{} 2017 Tobias Geerinckx-Rice@*
 Copyright @copyright{} 2017 George Clemmer@*
 Copyright @copyright{} 2017 Andy Wingo@*
+Copyright @copyright{} 2017 Oleg Pykhalov@*
 Copyright @copyright{} 2017 Arun Isaac
 
 Permission is granted to copy, distribute and/or modify this document
@@ -17774,10 +17775,9 @@ Data type representing the configuration of Cgit.
 This type has the following parameters:
 
 @table @asis
-@item @code{config-file} (default: @code{(cgit-configuration-file)})
+@item @code{config-file} (default: @code{(cgit-conf)})
 The configuration file to use for Cgit.  This can be set to a
-@dfn{cgit-configuration-file} record value, or any gexp
-(@pxref{G-Expressions}).
+@dfn{cgit-conf} record value, or any gexp (@pxref{G-Expressions}).
 
 For example, to instead use a local file, the @code{local-file} function
 can be used:
@@ -17794,17 +17794,98 @@ The Cgit package to use.
 @end table
 @end deftp
 
-@deftp {Data Type} cgit-configuration-file
+@deftp {Data Type} cgit-conf
 Data type representing the configuration options for Cgit.
 This type has the following parameters:
 
 @table @asis
+@example
+(service cgit-service-type
+         (cgit-configuration
+          (config-file (cgit-conf
+                        (branch-sort "age")
+                        (enable-commit-graph? #t)
+                        (enable-follow-links? #t)
+                        (enable-index-links? #t)
+                        (enable-log-filecount? #t)
+                        (enable-log-linecount? #t)
+                        (enable-remote-branches? #t)
+                        (enable-subject-links? #t)
+                        (remove-suffix? #t)
+                        (root-title (string-join (list "Cgit on" host-name)))
+                        (snapshots (list "tar.gz"))))))
+@end example
+
+@item @code{repositories} (default: @code{'()})
+A list of @dfn{cgit-repo} records to use with config.
+
+@item @code{extra-options} (default: @code{'()})
+A list of additional lines passed to config.
+
+@item @code{about-filter} (default @code{'()})
+Specifies a command which will be invoked to format the content of
+about pages (both top-level and for each repository).
+
+@item @code{agefile} (default @code{'()})
+Specifies a path, relative to each repository path, which can be used
+to specify the date and time of the youngest commit in the repository.
+
+@item @code{auth-filter} (default @code{'()})
+Specifies a command that will be invoked for authenticating repository
+access.
+
+@item @code{branch-sort} (default @code{"name"})
+Flag which, when set to @samp{age}, enables date ordering in the
+branch ref list, and when set to "name" enables ordering by branch
+name.
+
+@item @code{cache-root} (default @code{"/var/cache/cgit"})
+Path used to store the Cgit cache entries.
+
+@item @code{cache-static-ttl} (default @code{"-1"})
+Number which specifies the time-to-live, in minutes, for the cached
+version of repository pages accessed with a fixed SHA1.
+
+@item @code{cache-dynamic-ttl} (default @code{5})
+Number which specifies the time-to-live, in minutes, for the cached
+version of repository pages accessed without a fixed SHA1.
+
+@item @code{cache-repo-ttl} (default @code{5})
+Number which specifies the time-to-live, in minutes, for the cached
+version of the repository summary page.
+
+@item @code{cache-root-ttl} (default @code{5})
+Number which specifies the time-to-live, in minutes, for the cached
+version of the repository index page.
+
+@item @code{cache-scanrc-ttl} (default @code{15})
+Number which specifies the time-to-live, in minutes, for the result of
+scanning a path for Git repositories.
+
+@item @code{cache-about-ttl} (default @code{15})
+Number which specifies the time-to-live, in minutes, for the cached
+version of the repository about page.
+
+@item @code{cache-snapshot-ttl} (default @code{5})
+Number which specifies the time-to-live, in minutes, for the cached
+version of snapshots.
+
+@item @code{cache-size} (default @code{0})
+The maximum number of entries in the cgit cache.  When set to
+@samp{0}, caching is disabled.
+
+@item @code{case-sensitive-sort?} (default @code{#t})
+Sort items in the repo list case sensitively.
+
 @item @code{css} (default: @code{"/share/cgit/cgit.css"})
 URL which specifies the css document to include in all Cgit pages.
 
 @item @code{logo} (default: @code{"/share/cgit/cgit.png"})
 URL which specifies the source of an image which will be used as a logo
 on all Cgit pages.
+
+@item @code{logo-link} (default @code{'()})
+URL loaded when clicking on the Cgit logo image.
 
 @item @code{virtual-root} (default: @code{"/"})
 URL which, if specified, will be used as root for all Cgit links.
@@ -17813,8 +17894,339 @@ URL which, if specified, will be used as root for all Cgit links.
 Name of the directory to scan for repositories.
 
 @item @code{robots} (default: @code{(list "noindex" "nofollow")})
-Text used as content for the ``robots'' meta-tag.
+Text used as content for the @code{robots} meta-tag.
 
+@item @code{clone-prefix} (default: @code{'()})
+List of common prefixes which, when combined with a repository URL,
+generates valid clone URLs for the repository.
+
+@item @code{clone-url} (default: @code{'()})
+List of @code{clone-url} templates.
+
+@item @code{commit-filter} (default: @code{'()})
+Command which will be invoked to format commit messages.
+
+@item @code{commit-sort} (default: @code{"git log"})
+Flag which, when set to "date", enables strict date ordering in the
+commit log, and when set to "topo" enables strict topological
+ordering.
+
+@item @code{email-filter} (default: @code{'()})
+Specifies a command which will be invoked to format names and email
+address of committers, authors, and taggers, as represented in various
+places throughout the Cgit interface.
+
+@item @code{embedded} (default @code{'()})
+Flag which, when set to @samp{#t}, will make Cgit generate a HTML
+fragment suitable for embedding in other HTML pages.
+
+@item @code{enable-commit-graph?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit print an ASCII-art
+commit history graph to the left of the commit messages in the
+repository log page.
+
+@item @code{enable-filter-overrides?} (default @code{#f})
+Flag which, when set to @samp{#t}, allows all filter settings to be
+overridden in repository-specific cgitrc files.
+
+@item @code{enable-follow-links?} (default @code{#f})
+Flag which, when set to @samp{#t}, allows users to follow a file in the
+log view.
+
+@item @code{enable-http-clone?} (default @code{#t})
+If set to @samp{#t}, Cgit will act as an dumb HTTP endpoint for Git
+clones.
+
+@item @code{enable-index-links?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit generate extra links
+("summary", "commit", "tree") for each repo in the repository index.
+
+@item @code{enable-index-owner?} (default @code{#t})
+Flag which, when set to @samp{#t}, will make Cgit display the owner of
+each repo in the repository index.
+
+@item @code{owner-filter} (default @code{#f})
+Command which will be invoked to format the Owner column of the main
+page.
+
+@item @code{enable-log-filecount?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit print the number of
+modified files for each commit on the repository log page.
+
+@item @code{enable-log-linecount?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit print the number of
+added and removed lines for each commit on the repository log page.
+
+@item @code{enable-remote-branches?} (default @code{#f})
+Flag which, when set to @code{#t}, will make Cgit display remote
+branches in the summary and refs views.
+
+@item @code{enable-subject-links?} (default @code{#f})
+Flag which, when set to @code{1}, will make Cgit use the subject of
+the parent commit as link text when generating links to parent commits
+in commit view.
+
+@item @code{enable-html-serving?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit use the subject of the
+parent commit as link text when generating links to parent commits in
+commit view.
+
+@item @code{enable-tree-linenumbers?} (default @code{#t})
+Flag which, when set to @samp{#t}, will make Cgit generate linenumber
+links for plaintext blobs printed in the tree view.
+
+@item @code{enable-git-config?} (default @code{#f})
+Flag which, when set to @samp{#f}, will allow Cgit to use Git config to
+set any repo specific settings.
+
+@item @code{favicon} (default @code{"/favicon.ico"})
+URL used as link to a shortcut icon for Cgit.
+
+@item @code{footer} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim at the bottom of all pages (i.e. it replaces the standard
+"generated by..." message.
+
+@item @code{head-include} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim in the HTML HEAD section on all pages.
+
+@item @code{header} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim at the top of all pages.
+
+@item @code{include} (default @code{'()})
+Name of a configfile to include before the rest of the current config-
+file is parsed.
+
+@item @code{index-header} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim above the repository index.
+
+@item @code{index-info} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim below the heading on the repository index page.
+
+@item @code{local-time} (default @code{#f})
+Flag which, if set to @samp{#t}, makes Cgit print commit and tag times
+in the servers timezone.
+
+@item @code{max-atom-items} (default @code{10})
+Number of items to display in atom feeds view.
+
+@item @code{max-commit-count} (default @code{50})
+Number of entries to list per page in "log" view.
+
+@item @code{max-message-length} (default @code{80})
+Number of commit message characters to display in "log" view.
+
+@item @code{max-repo-count} (default @code{50})
+
+@item @code{max-repodesc-length} (default @code{80})
+Specifies the maximum number of repo description characters to display
+on the repository index page.
+
+@item @code{max-blob-size} (default @code{0})
+Specifies the maximum size of a blob to display HTML for in KBytes.
+
+@item @code{max-stats} (default @code{'()})
+Maximum statistics period.
+
+@item @code{mimetype-file} (default @code{'()})
+Specifies the file to use for automatic mimetype lookup.
+
+@item @code{module-link} (default @code{'()})
+Text which will be used as the formatstring for a hyperlink when a
+submodule is printed in a directory listing.
+
+@item @code{nocache} (default @code{#f})
+If set to the value @samp{#t} caching will be disabled.
+
+@item @code{noplainemail?} (default @code{#f})
+If set to @samp{#t} showing full author email addresses will be
+disabled.
+
+@item @code{noheader?} (default @code{#f})
+Flag which, when set to @samp{#t}, will make Cgit omit the standard
+header on all pages.
+
+@item @code{project-list} (default @code{'()})
+A list of subdirectories inside of @code{repository-directory}, relative
+to it, that should loaded as Git repositories.
+
+@item @code{readme} (default @code{'()})
+Text which will be used as default value for
+@code{cgit-repo-readme}.
+
+@item @code{remove-suffix} (default @code{'()})
+If set to @code{#t} and @code{repository-directory} is enabled, if any
+repositories are found with a suffix of @code{.git}, this suffix will be
+removed for the URL and name.
+
+@item @code{renamelimit} (default @code{-1})
+Maximum number of files to consider when detecting renames.
+
+@item @code{repository-sort} (default @code{'()})
+The way in which repositories in each section are sorted.
+
+@item @code{root-desc} (default @code{"A webinterface for the Git DSCM"})
+Text printed below the heading on the repository index page.
+
+@item @code{root-readme} (default @code{'()})
+The content of the file specified with this option will be included
+verbatim below thef "about" link on the repository index page.
+
+@item @code{root-title} (default @code{'()})
+Text printed as heading on the repository index page.
+
+@item @code{scan-hidden-path} (default @code{#f})
+If set to @samp{#t} and @code{repository-directory} is enabled,
+@code{repository-directory} will recurse into directories whose name
+starts with a period @code{.}.
+
+@item @code{section} (default @code{'()})
+The name of the current repository section - all repositories defined
+after this option will inherit the current section name.
+@end table
+@end deftp
+
+@deftp {Data Type} cgit-repo
+Data type representing the configuration options for Cgit repository.
+This type has the following parameters:
+
+@table @asis
+@item @code{about-filter} (defined @code{'()})
+Override the default @code{about-filter}.
+
+@item @code{commit-filter} (default @code{'()})
+Override the default @code{commit-filter}.
+
+@item @code{commit-sort} (default @code{'()})
+Flag which, when set to "date", enables strict date ordering in the
+commit log, and when set to "topo" enables strict topological ordering.
+
+@item @code{description} (default @code{'()})
+The value to show as repository description.
+
+@item @code{homepage} (default @code{'()})
+The value to show as repository homepage.
+
+@item @code{enable-commit-graph?} (default @code{'()}
+A flag which can be used to disable the global setting
+@code{enable-commit-graph?}.
+
+@item @code{enable-log-filecount} (default @code{'()}
+A flag which can be used to disable the global setting
+@code{enable-log-filecount?}.
+
+@item @code{enable-log-linecount?} (default @code{'()}
+A flag which can be used to disable the global setting
+@code{enable-log-linecount?}.
+
+@item @code{enable-remote-branches?} (default @code{'()}
+Flag which, when set to @code{#t}, will make Cgit display remote
+branches in the summary and refs views.
+
+@item @code{enable-subject-links?} (default @code{'()}
+A flag which can be used to override the global setting
+@code{enable-subject-links?}.
+
+@item @code{enable-html-serving?} (default @code{'()}
+A flag which can be used to override the global setting
+@code{enable-html-serving?}.
+
+@item @code{hide} (default @code{#f}
+Flag which, when set to @code{#t}, hides the repository from the
+repository index.
+
+@item @code{ignore} (default @code{#f}
+Flag which, when set to @samp{#t}, ignores the repository.
+
+@item @code{logo} (default @code{'()}
+URL which specifies the source of an image which will be used as a
+logo on this repo’s pages.
+
+@item @code{logo-link} (default @code{'()}
+URL loaded when clicking on the Cgit logo image.
+
+@item @code{owner-filter} (default @code{'()}
+Override the default @code{owner-filter}.
+
+@item @code{module-link} (default @code{'()}
+Text which will be used as the formatstring for a hyperlink when a
+submodule is printed in a directory listing.
+
+@item @code{module-link.<path>} (default @code{'()}
+Text which will be used as the formatstring for a hyperlink when a
+submodule with the specified subdirectory path is printed in a
+directory listing.
+
+@item @code{max-stats} (default @code{'()}
+Override the default maximum statistics period.
+
+@item @code{name} (default @code{'()}
+The value to show as repository name.
+
+@item @code{owner} (default @code{'()}
+A value used to identify the owner of the repository.
+
+@item @code{path} (default @code{'()}
+An absolute path to the repository directory.
+
+@item @code{readme} (default @code{'()}
+A path (relative to repo) which specifies a file to include verbatim
+as the "About" page for this repo.
+
+@item @code{snapshots} (default @code{'()}
+A mask of snapshot formats for this repo that Cgit generates links
+for, restricted by the global "snapshots" setting.
+
+@item @code{section} (default @code{'()}
+Override the current section name for this repository.
+
+@item @code{source-filter} (default @code{'()}
+Override the default @code{source-filter}.
+
+@item @code{url} (default @code{'()}
+The relative URL used to access the repository.
+
+@item @code{section-sort} (default @code{#t})
+Flag which, when set to @samp{#t}, will sort the sections on the
+repository listing by name.  Set this flag to @code{#f} if the order in
+the cgitrc file should be preserved.
+
+@item @code{section-from-path} (default @code{'()})
+Number which, if defined prior to @code{repository-directory}, specifies
+how many path elements from each repo path to use as a default section
+name.
+
+@item @code{side-by-side-diffs?} (default @code{#f})
+If set to @samp{#t} shows side-by-side diffs instead of unidiffs per
+default.
+
+@item @code{snapshots} (default @code{'()})
+List of strings which specifies the default set of snapshot formats
+that Cgit generates links for.
+
+@item @code{source-filter} (default @code{'()})
+Specifies a command which will be invoked to format plaintext blobs in
+the tree view.
+
+@item @code{summary-branches} (default @code{10})
+Specifies the number of branches to display in the repository "summary"
+view.
+
+@item @code{summary-log} (default @code{10})
+Specifies the number of log entries to display in the repository
+"summary" view.
+
+@item @code{summary-tags} (default @code{10})
+Specifies the number of tags to display in the repository "summary"
+view.
+
+@item @code{strict-export} (default @code{'()})
+Filename which, if specified, needs to be present within the repository
+for Cgit to allow access to that repository.
 @end table
 @end deftp
 
