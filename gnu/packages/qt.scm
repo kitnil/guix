@@ -54,6 +54,7 @@
   #:use-module (gnu packages maths)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pcre)
+  #:use-module (gnu packages pdf)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages pulseaudio)
@@ -2013,3 +2014,36 @@ a binding language:
 @item Creating from Singleton QML QObject defined in the binded language
 @end itemize\n")
     (license license:lgpl3)))                    ;version 3 only (+ exception)
+
+(define-public boomaga
+  (package
+    (name "boomaga")
+    (version "1.0.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/Boomaga/boomaga/archive/"
+                    "v" version ".tar.gz"))
+              (sha256
+               (base32
+                "02crqlni08cah8yf5rxivwryn1l9w5b4ns1x7ymly45vl9arrpgz"))))
+    (build-system cmake-build-system)
+    (native-inputs
+     `(("pkg-config" ,pkg-config)))
+    (inputs
+     `(("qtbase" ,qtbase)
+       ("qttools" ,qttools) ; Qt5LinguistTools
+       ("cups-minimal" ,cups-minimal)
+       ("snappy" ,snappy)
+       ("poppler" ,poppler)
+       ("zlib" ,zlib)))
+    (arguments
+     `(#:tests? #f ; No tests included
+       #:configure-flags
+       (let ((out (assoc-ref %outputs "out")))
+         (list (string-append "-CUPS_BACKEND_DIR=" out "/lib/cups/backend")
+               (string-append "-CUPS_FILTER_DIR=" out "/lib/cups/filter"))))) 
+    (home-page "https://github.com/Boomaga/boomaga/")
+    (synopsis "todo")
+    (description "todo")
+    (license #f)))
