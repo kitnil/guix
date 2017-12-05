@@ -1881,23 +1881,13 @@ This service is not part of @var{%base-services}."
   ;; Convenience variable holding the basic services.
   (list (login-service)
 
-        (service console-font-service-type
-                 (map (lambda (tty)
-                        (cons tty %default-console-font))
-                      '("tty1" "tty2" "tty3" "tty4" "tty5" "tty6")))
+        ;; (service console-font-service-type
+        ;;          (map (lambda (tty)
+        ;;                 (cons tty %default-console-font))
+        ;;               '("ttyS0")))
 
-        (mingetty-service (mingetty-configuration
-                           (tty "tty1")))
-        (mingetty-service (mingetty-configuration
-                           (tty "tty2")))
-        (mingetty-service (mingetty-configuration
-                           (tty "tty3")))
-        (mingetty-service (mingetty-configuration
-                           (tty "tty4")))
-        (mingetty-service (mingetty-configuration
-                           (tty "tty5")))
-        (mingetty-service (mingetty-configuration
-                           (tty "tty6")))
+        (agetty-service (agetty-configuration
+                         (tty "ttyS0")))
 
         (service static-networking-service-type
                  (list (static-networking (interface "lo")
