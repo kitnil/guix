@@ -338,6 +338,7 @@ authentication.")
          "1y5p2mq3bfw35b66jsafmbva0w5gg1k99y9z8fyp3jfksqv3agcc"))
        (patches (search-patches "pidgin-add-search-path.patch"))))
     (build-system glib-or-gtk-build-system)
+    (outputs '("out" "libpurple"))
     (native-inputs
      `(("pkg-config" ,pkg-config)
        ("check" ,check)
@@ -382,7 +383,25 @@ authentication.")
              "--enable-cyrus-sasl"
              (string-append "--with-ncurses-headers="
                             (assoc-ref %build-inputs "ncurses")
-                            "/include"))))
+                            "/include"))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'install 'install-libpurple
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out"))
+                   (libpurple (assoc-ref outputs "libpurple")))
+               (for-each (lambda (file)
+                           (install-file file
+                                         (string-append libpurple "/lib")))
+                         (find-files (string-append out "/lib") "libpurple"))
+               (for-each (lambda (file)
+                           (install-file file
+                                         (string-append libpurple "/include/libpurple")))
+                         (find-files (string-append out "/include/libpurple")))
+               (let ((pkgconfig "/lib/pkgconfig"))
+                 (install-file (string-append out pkgconfig "/purple.pc")
+                               (string-append libpurple pkgconfig))))
+             #t)))))
     (native-search-paths
      (list (search-path-specification
             (variable "PURPLE_PLUGIN_PATH")
