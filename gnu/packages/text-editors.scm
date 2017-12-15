@@ -6,6 +6,7 @@
 ;;; Copyright © 2017 ng0 <ng0@infotropique.org>
 ;;; Copyright © 2014 Taylan Ulrich Bayırlı/Kammer <taylanbayirli@gmail.org>
 ;;; Copyright © 2017 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2017 Mark Meyer <mark@ofosos.org>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -29,6 +30,7 @@
   #:use-module (guix utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system glib-or-gtk)
+  #:use-module (guix build-system python)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages)
   #:use-module (gnu packages assembly)
@@ -41,10 +43,41 @@
   #:use-module (gnu packages lua)
   #:use-module (gnu packages ncurses)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages python)
+  #:use-module (gnu packages python-web)
   #:use-module (gnu packages regex)
   #:use-module (gnu packages ruby)
   #:use-module (gnu packages terminals)
   #:use-module (gnu packages xml))
+
+(define-public virtaal
+  (package
+    (name "virtaal")
+    (version "0.7.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "mirror://sourceforge/translate/Virtaal/"
+                                  version "/virtaal-" version ".tar.bz2"))
+              (sha256
+               (base32
+                "0cyimjp3191qlmw6n0ipqdr9xr0cq4f6dqvz4rl9q31h6l3kywf9"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:python ,python-2
+       #:use-setuptools? #f
+       #:tests? #f))
+    (propagated-inputs
+     `(("python2-pycurl" ,python2-pycurl)
+       ("python2-pygtk" ,python2-pygtk)
+       ("python2-lxml" ,python2-lxml)
+       ("python2-translate-toolkit" ,python2-translate-toolkit)
+       ("python2-simplejson" ,python2-simplejson)))
+    (synopsis "An editor for translation files")
+    (description
+     "Virtaal, a feature rich translation tool that allows you to focus on
+translation, without the tool getting in the way.")
+    (home-page "http://virtaal.translatehouse.org/")
+    (license license:gpl2)))
 
 (define-public vis
   (package
