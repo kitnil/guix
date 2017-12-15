@@ -683,7 +683,22 @@ MANIFEST."
   (define gzip                                    ;lazy reference
     (module-ref (resolve-interface '(gnu packages compression)) 'gzip))
 
-  (define build
+  ;; We only need to build the 'dir' file for inputs that does containing info
+  ;; manuals.
+  ;;
+  ;; XXX: This breaks '--dry-run', all manifest inputs will be built before
+  ;; returning the profile derivation...
+  (define interested
+    (eval-gexp
+     #~(filter
+        (lambda (input)
+          (file-exists? (string-append input "/share/info")))
+        '#$(manifest-inputs manifest))))
+
+  ;; XXX: We have to pass paths of inputs instead of paths of info files,
+  ;; because 'gexp-inputs' only adds inputs for strings which satisfies
+  ;; 'direct-store-path?'.
+  (define (build inputs)
     (with-imported-modules '((guix build utils))
       #~(begin
           (use-modules (guix build utils)
@@ -707,12 +722,12 @@ MANIFEST."
 
           (mkdir-p (string-append #$output "/share/info"))
           (exit (every install-info
-                       (append-map info-files
-                                   '#$(manifest-inputs manifest)))))))
+                       (append-map info-files '#$inputs))))))
 
-  (gexp->derivation "info-dir" build
-                    #:local-build? #t
-                    #:substitutable? #f))
+  (mlet* %store-monad ((inputs interested))
+    (gexp->derivation "info-dir" (build inputs)
+                      #:local-build? #t
+                      #:substitutable? #f)))
 
 (define (ghc-package-cache-file manifest)
   "Return a derivation that builds the GHC 'package.cache' file for all the
