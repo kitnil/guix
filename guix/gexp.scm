@@ -76,6 +76,7 @@
             gexp->derivation
             gexp->file
             gexp->script
+            eval-gexp
             text-file*
             mixed-text-file
             file-union
@@ -1160,6 +1161,21 @@ and '%load-compiled-path' to honor EXP's imported modules."
                               (write '(ungexp exp) port))))
                          #:local-build? #t
                          #:substitutable? #f)))))
+
+(define* (eval-gexp exp #:optional (name "value"))
+  "Return as a monadic value the EXP (a gexp) evaluate to.  This is
+implemented by building a store file NAME that contains the textual
+representation of EXP's value, and then @code{read} from it."
+  (mlet* %store-monad
+      ((drv (gexp->derivation
+             name
+             (gexp (with-output-to-file (ungexp output)
+                     (lambda ()
+                       (write (eval (quote (ungexp exp)) (current-module))))))
+             #:local-build? #t
+             #:substitutable? #t))
+       (_   (built-derivations (list drv))))
+    (return (call-with-input-file (derivation->output-path drv) read))))
 
 (define* (text-file* name #:rest text)
   "Return as a monadic value a derivation that builds a text file containing
