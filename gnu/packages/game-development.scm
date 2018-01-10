@@ -1150,3 +1150,54 @@ features design tools such as a visual editor, can import 3D models and
 provide high-quality 3D rendering, it contains an animation editor, and can be
 scripted in a Python-like language.")
     (license license:expat)))
+
+(define-public urho3d
+  (package
+    (name "urho3d")
+    (version "1.7")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/urho3d/Urho3D"
+                                  "/archive/" version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1im63n9rx8qq1ks6aq6jrl5ikxg87hqhsy06miqc317hpm1iyav5"))))
+    (build-system cmake-build-system)
+    (inputs `(("libx11" ,libx11)
+              ("libxcursor" ,libxcursor)
+              ("libxext" ,libxext)
+              ("libxi" ,libxi)
+              ("libxinerama" ,libxinerama)
+              ("libxrandr" ,libxrandr)
+              ("libxrender" ,libxrender)
+              ("libxscrnsaver" ,libxscrnsaver)
+              ("mesa" ,mesa)
+              ("alsa-lib" ,alsa-lib)
+              ("pulseaudio" ,pulseaudio)))
+    (arguments
+     '(#:tests?
+       #f ; There are no tests
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'configure 'use-full-library-paths
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* (string-append "../build/Source/ThirdParty"
+                                         "/SDL/include/generated/SDL_config.h")
+               (("#define SDL_AUDIO_DRIVER_ALSA_DYNAMIC \"libasound\\.so\\.2\"")
+                (string-append "#define SDL_AUDIO_DRIVER_ALSA_DYNAMIC \""
+                               (assoc-ref inputs "alsa-lib")
+                               "/lib/libasound.so.2"
+                               "\""))
+               (((string-append "#define SDL_AUDIO_DRIVER_PULSEAUDIO_DYNAMIC"
+                                " \"libpulse-simple\\.so\\.0\""))
+                (string-append "#define SDL_AUDIO_DRIVER_PULSEAUDIO_DYNAMIC \""
+                               (assoc-ref inputs "pulseaudio")
+                               "/lib/libpulse-simple.so.0"
+                               "\"")))
+             #t)))))
+    (home-page "https://urho3d.github.io/")
+    (synopsis "Cross-platform 2D and 3D game engine")
+    (description "Lightweight, cross-platform 2D and 3D game engine
+implemented in C++.  Inspired by OGRE and Horde3D.")
+    (license license:expat)))
