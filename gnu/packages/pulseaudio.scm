@@ -7,6 +7,7 @@
 ;;; Copyright © 2017 Leo Famulari <leo@famulari.name>
 ;;; Copyright © 2017 Stefan Reichör <stefan@xsteve.at>
 ;;; Copyright © 2017 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -291,3 +292,13 @@ sinks.")
     (description "Pulsemixer is a PulseAudio mixer with command-line and
 curses-style interfaces.")
     (license l:expat)))
+
+(define-public pulsemixer-emacs-keybindings
+  (package
+    (inherit pulsemixer)
+    (name "pulsemixer-emacs-keybindings")
+    (source (origin
+              (inherit (package-source pulsemixer))
+              (patches (search-patches "pulsemixer-add-emacs-keybindings.patch"))))
+    (description "Pulsemixer is a PulseAudio mixer with command-line and
+curses-style interfaces with Emacs keybindings.")))

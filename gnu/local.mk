@@ -1001,6 +1001,7 @@ dist_patch_DATA =						\
   %D%/packages/patches/psm-repro.patch				\
   %D%/packages/patches/pt-scotch-build-parallelism.patch	\
   %D%/packages/patches/pulseaudio-fix-mult-test.patch		\
+  %D%/packages/patches/pulsemixer-add-emacs-keybindings.patch	\
   %D%/packages/patches/pulseaudio-longer-test-timeout.patch	\
   %D%/packages/patches/pycairo-wscript.patch			\
   %D%/packages/patches/pybugz-encode-error.patch		\
