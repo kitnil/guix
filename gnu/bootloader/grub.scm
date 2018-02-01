@@ -324,22 +324,33 @@ entries corresponding to old generations of the system."
           (label (menu-entry-label entry))
           (kernel (menu-entry-linux entry))
           (arguments (menu-entry-linux-arguments entry))
-          (initrd (menu-entry-initrd entry)))
+          (initrd (menu-entry-initrd entry))
+          (additional-options (menu-entry-additional-options entry)))
       ;; Here DEVICE is the store and DEVICE-MOUNT-POINT is its mount point.
       ;; Use the right file names for KERNEL and INITRD in case
       ;; DEVICE-MOUNT-POINT is not "/", meaning that the store is on a
       ;; separate partition.
-      (let ((kernel  (strip-mount-point device-mount-point kernel))
-            (initrd  (strip-mount-point device-mount-point initrd)))
-        #~(format port "menuentry ~s {
+      (if (and (file-append? kernel) (file-append? initrd))
+          (let ((kernel  (strip-mount-point device-mount-point kernel))
+                (initrd  (strip-mount-point device-mount-point initrd)))
+            #~(format port "menuentry ~s {
   ~a
   linux ~a ~a
   initrd ~a
+  ~a
 }~%"
-                  #$label
-                  #$(grub-root-search device kernel)
-                  #$kernel (string-join (list #$@arguments))
-                  #$initrd))))
+                      #$label
+                      #$(grub-root-search device kernel)
+                      #$kernel (string-join (list #$@arguments))
+                      #$initrd
+                      (string-join (list #$@additional-options) "\n")))
+          #~(format port "menuentry ~s {
+  ~a
+  ~a
+}~%"
+                    #$label
+                    #$(grub-root-search device kernel)
+                    (string-join (list #$@additional-options) "\n")))))
   (mlet %store-monad ((sugar (eye-candy config
                                         (menu-entry-device
                                          (first all-entries))

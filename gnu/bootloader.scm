@@ -31,6 +31,7 @@
             menu-entry-linux-arguments
             menu-entry-initrd
             menu-entry-device-mount-point
+            menu-entry-additional-options
 
             bootloader
             bootloader?
@@ -65,15 +66,17 @@
 (define-record-type* <menu-entry>
   menu-entry make-menu-entry
   menu-entry?
-  (label           menu-entry-label)
-  (device          menu-entry-device       ; file system uuid, label, or #f
-                   (default #f))
+  (label              menu-entry-label)
+  (device             menu-entry-device      ; file system uuid, label, or #f
+                      (default #f))
   (device-mount-point menu-entry-device-mount-point
-                   (default #f))
-  (linux           menu-entry-linux)
-  (linux-arguments menu-entry-linux-arguments
-                   (default '()))          ; list of string-valued gexps
-  (initrd          menu-entry-initrd))     ; file name of the initrd as a gexp
+                      (default #f))
+  (linux              menu-entry-linux)
+  (linux-arguments    menu-entry-linux-arguments
+                      (default '()))         ; list of string-valued gexps
+  (initrd             menu-entry-initrd)     ; file name of the initrd as a gexp
+  (additional-options menu-entry-additional-options
+                      (default '())))        ; list of string-valued gexps
 
 
 ;;;
