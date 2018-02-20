@@ -942,6 +942,123 @@ from other CLXes around the net.")
      `(("sbcl-cl-ppcre" ,sbcl-cl-ppcre)
        ("sbcl-cl-unicode" ,sbcl-cl-unicode)))))
 
+(define-public sbcl-trivial-features
+  (package
+    (name "sbcl-trivial-feautures")
+    (version "0.8")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://common-lisp.net/~loliveira/tarballs/"
+             "trivial-features/trivial-features_" version ".tar.gz"))
+       (sha256
+        (base32
+         "0hdv73c9g57zglvjhb30clx2415xzwn0whmjrmwnm833d56w06s2"))))
+    (build-system asdf-build-system/source)
+    (home-page "https://github.com/trivial-features/trivial-features/")
+    (synopsis "Consistent *FEATURES* across Common Lisp implementations.")
+    (description "trivial-features ensures consistent *FEATURES* across
+multiple Common Lisp implementations.")
+    (license license:expat)))
+
+(define-public sbcl-hu-dwim-stefil
+  (package
+    (name "sbcl-hu-dwim-stefil")
+    (version "20170403")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "http://beta.quicklisp.org/archive"
+                           "/hu.dwim.stefil/"
+                           (match (string->list version)
+                             ((y1 y2 y3 y4 m1 m2 d1 d2)
+                              (string y1 y2 y3 y4 #\- m1 m2 #\- d1 d2)))
+                           "/hu.dwim.stefil-" version "-darcs" ".tgz"))
+       (sha256
+        (base32
+         "1irrsb0xfc5bx49aqs4ak0xzpjbjhxi9igx5x392gb5pzsak2r9n"))))
+    (build-system asdf-build-system/source)
+    (home-page "http://quickdocs.org/hu.dwim.stefil")
+    (synopsis "TODO")
+    (description "TODO")
+    (license license:bsd-3)))
+
+(define-public sbcl-babel
+  (package
+    (name "sbcl-babel")
+    (version "0.5.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://common-lisp.net/project/babel/releases/"
+                           "babel_" version ".tar.gz"))
+       (sha256
+        (base32
+         "0wigyvkxr31q55xczkra4m7w0iyhpahqz5qx1wmab6g3vyx2n2vn"))))
+    (inputs
+     `(("alexandria" ,sbcl-alexandria)
+       ("hu-dwim-stefil" ,sbcl-hu-dwim-stefil)
+       ("trivial-features" ,sbcl-trivial-features)))
+    (build-system asdf-build-system/sbcl)
+    (home-page "https://common-lisp.net/project/babel/")
+    (synopsis "Charset encoding/decoding library")
+    (description "Babel is a charset encoding/decoding library, not unlike GNU
+libiconv, but completely written in Common Lisp.")
+    (license license:expat)))
+
+(define-public sbcl-cffi
+  (package
+    (name "sbcl-cffi")
+    (version "0.19.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://common-lisp.net/project/cffi/releases/"
+                           "cffi_" version ".tar.gz"))
+       
+       (sha256
+        (base32
+         "12v3ha0qp3f9lq2h3d7y3mwdq216nsdfig0s3c4akw90rsbnydj9"))))
+    (build-system asdf-build-system/sbcl)
+    (inputs
+     `(("alexandria" ,sbcl-alexandria)
+       ("trivial-features" ,sbcl-trivial-feautures)))
+    (home-page "https://common-lisp.net/project/cffi/")
+    (synopsis "Portable foreign function interface for Common Lisp")
+    (description "CFFI, the Common Foreign Function Interface, purports to be
+a portable foreign function interface for Common Lisp.  The CFFI library is
+composed of a Lisp-implementation-specific backend in the CFFI-SYS package,
+and a portable frontend in the CFFI package.
+
+The CFFI-SYS backend package defines a low-level interface to the native FFI
+support in the Lisp implementation.  It offers operators for allocating and
+dereferencing foreign memory, calling foreign functions, and loading shared
+libraries.  The CFFI frontend provides a declarative interface for defining
+foreign functions, structures, typedefs, enumerated types, etc.  It is
+implemented in portable ANSI CL making use of the low-level operators exported
+by CFFI-SYS.")
+    (license license:public-domain)))
+
+(define-public sbcl-linedit
+  (package
+    (name "sbcl-linedit")
+    (version "0.17.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://common-lisp.net/project/linedit/files/"
+                           "linedit_" version  ".tar.gz"))
+       (sha256
+        (base32
+         "1240q1m3zbdl818yhwc9pl9gkb6iq6nzsbhsr33wpz2xg6yg0lsb"))))
+    (build-system asdf-build-system/sbcl)
+    (synopsis "Line-editing console library for Common Lisp")
+    (description
+     "Linedit is a portable line-editing console library for Common Lisp.")
+    (home-page "https://common-lisp.net/project/linedit/")
+    (license license:public-domain)))
+
 (define-public sbcl-stumpwm
   (package
     (name "sbcl-stumpwm")
