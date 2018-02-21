@@ -213,18 +213,18 @@ settings to tweak as well.")
            (add-after 'build 'build-tiles
              (lambda* (#:key make-flags outputs #:allow-other-keys)
                ;; Change prefix directory and enable tile graphics and sound.
-               (zero?
-                (apply system* "make" "TILES=1" "SOUND=1"
-                       (string-append "PREFIX="
-                                      (assoc-ref outputs "tiles"))
-                       (cdr make-flags)))))
+               (apply invoke "make" "TILES=1" "SOUND=1"
+                      (string-append "PREFIX="
+                                     (assoc-ref outputs "tiles"))
+                      (cdr make-flags))))
            (add-after 'install 'install-tiles
              (lambda* (#:key make-flags outputs #:allow-other-keys)
-               (zero?
-                (apply system* "make" "install" "TILES=1" "SOUND=1"
-                       (string-append "PREFIX="
-                                      (assoc-ref outputs "tiles"))
-                       (cdr make-flags))))))
+               (let ((out (assoc-ref outputs "tiles")))
+                 (apply invoke "make" "install" "TILES=1" "SOUND=1"
+                        (string-append "PREFIX=" out)
+                        (cdr make-flags))
+                 (copy-recursively "data/sound"
+                                   (string-append out "/data/sound"))))))
          ;; TODO: Add libtap++ from https://github.com/cbab/libtappp
          ;;       as a native input in order to support tests.
          #:tests? #f))
