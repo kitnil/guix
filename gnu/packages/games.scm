@@ -198,7 +198,8 @@ settings to tweak as well.")
     (build-system gnu-build-system)
     (arguments
      '(#:make-flags (list (string-append "PREFIX=" (assoc-ref %outputs "out"))
-                          "USE_HOME_DIR=1" "DYNAMIC_LINKING=1" "RELEASE=1")
+                          "USE_HOME_DIR=1" "DYNAMIC_LINKING=1" "RELEASE=1"
+                          "TILES=1" "SOUND=1")
        #:phases
        (modify-phases %standard-phases
          (replace 'configure
@@ -206,27 +207,10 @@ settings to tweak as well.")
              (substitute* "Makefile"
                (("ncursesw5-config") "ncursesw6-config")
                (("RELEASE_FLAGS = -Werror") "RELEASE_FLAGS ="))
-             #t))
-         (add-after 'build 'build-tiles
-           (lambda* (#:key make-flags outputs #:allow-other-keys)
-             ;; Change prefix directory and enable tile graphics and sound.
-             (zero?
-              (apply system* "make" "TILES=1" "SOUND=1"
-                     (string-append "PREFIX="
-                                    (assoc-ref outputs "tiles"))
-                     (cdr make-flags)))))
-         (add-after 'install 'install-tiles
-           (lambda* (#:key make-flags outputs #:allow-other-keys)
-             (zero?
-              (apply system* "make" "install" "TILES=1" "SOUND=1"
-                     (string-append "PREFIX="
-                                    (assoc-ref outputs "tiles"))
-                     (cdr make-flags))))))
+             #t)))
        ;; TODO: Add libtap++ from https://github.com/cbab/libtappp as a native
        ;;       input in order to support tests.
        #:tests? #f))
-    (outputs '("out"
-               "tiles")) ; For tile graphics and sound support.
     (native-inputs
      `(("gettext" ,gettext-minimal)
        ("pkg-config" ,pkg-config)))
