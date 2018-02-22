@@ -1309,7 +1309,9 @@ can solve two kinds of problems:
        ("zlib" ,zlib)
        ("curl" ,curl)
        ("texinfo" ,texinfo)
-       ("graphicsmagick" ,graphicsmagick)))
+       ("graphicsmagick" ,graphicsmagick)
+       ("qtbase" ,qtbase)
+       ("qscintilla" ,qscintilla)))
     (native-inputs
      `(("lzip" ,lzip)
        ("gfortran" ,gfortran)
@@ -1324,7 +1326,8 @@ can solve two kinds of problems:
        ;; provide.
        ("less" ,less)
        ("ghostscript" ,ghostscript)
-       ("gnuplot" ,gnuplot)))
+       ("gnuplot" ,gnuplot)
+       ("qttools" ,qttools)))
     (arguments
      `(#:configure-flags
        (list (string-append "--with-shell="
