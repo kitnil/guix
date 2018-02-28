@@ -523,6 +523,9 @@ Build the given PACKAGE-OR-DERIVATION and return their output paths.\n"))
   -q, --quiet            do not show the build log"))
   (display (G_ "
       --log-file         return the log file names for the given derivations"))
+  (display (G_ "
+      --remote-log-file  return the log file names for the given derivations
+                         from a remote server"))
   (newline)
   (show-build-options-help)
   (newline)
@@ -601,6 +604,9 @@ must be one of 'package', 'all', or 'transitive'~%")
          (option '("log-file") #f #f
                  (lambda (opt name arg result)
                    (alist-cons 'log-file? #t result)))
+         (option '("remote-log-file") #f #f
+                 (lambda (opt name arg result)
+                   (alist-cons 'remote-log-file? #t result)))
 
          (append %transformation-options
                  %standard-build-options)))
@@ -691,14 +697,19 @@ package '~a' has no source~%")
                 (map (cut transform store <>)
                      (options->things-to-build opts)))))
 
-(define (show-build-log store file urls)
-  "Show the build log for FILE, falling back to remote logs from URLS if
-needed."
-  (let ((log (or (log-file store file)
-                 (log-url store file #:base-urls urls))))
+(define (show-build-log store file)
+  "Show the build log for FILE."
+  (let ((log (log-file store file)))
     (if log
         (format #t "~a~%" log)
         (leave (G_ "no build log for '~a'~%") file))))
+
+(define (show-remote-build-log store file urls)
+  "Show the remote build log for FILE from URLS."
+  (let ((log (log-url store file #:base-urls urls)))
+    (if log
+        (format #t "~a~%" log)
+        (leave (G_ "no remote build log for '~a'~%") file))))
 
 
 ;;;
@@ -712,6 +723,9 @@ needed."
 
   (define quiet?
     (assoc-ref opts 'quiet?))
+
+  (define (derivation-file-names drv items)
+    (delete-duplicates (append (map derivation-file-name drv) items)))
 
   (with-error-handling
     ;; Ask for absolute file names so that .drv file names passed from the
@@ -744,6 +758,7 @@ needed."
                                     opts)))
 
             (unless (or (assoc-ref opts 'log-file?)
+                        (assoc-ref opts 'remote-log-file?)
                         (assoc-ref opts 'derivations-only?))
               (show-what-to-build store drv
                                   #:use-substitutes?
@@ -752,10 +767,11 @@ needed."
                                   #:mode mode))
 
             (cond ((assoc-ref opts 'log-file?)
-                   (for-each (cut show-build-log store <> urls)
-                             (delete-duplicates
-                              (append (map derivation-file-name drv)
-                                      items))))
+                   (for-each (cut show-build-log store <>)
+                             (derivation-file-names drv items)))
+                  ((assoc-ref opts 'remote-log-file?)
+                   (for-each (cut show-remote-build-log store <> urls)
+                             (derivation-file-names drv items)))
                   ((assoc-ref opts 'derivations-only?)
                    (format #t "~{~a~%~}" (map derivation-file-name drv))
                    (for-each (cut register-root store <> <>)
