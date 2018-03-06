@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: guix UNKNOWN\n"
 "Report-Msgid-Bugs-To: ludo@gnu.org\n"
 "POT-Creation-Date: 2017-11-16 11:30+0300\n"
-"PO-Revision-Date: 2018-03-06 13:32+0300\n"
+"PO-Revision-Date: 2018-03-06 13:57+0300\n"
 "Last-Translator: Oleg Pykhalov <go.wigust@gmail.com>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -22,7 +22,7 @@ msgstr ""
 #: gnu.scm:82
 #, scheme-format
 msgid "module ~a not found"
-msgstr ""
+msgstr "модуль « ~a » не найден"
 
 #: gnu.scm:100
 msgid ""
@@ -31,11 +31,15 @@ msgid ""
 "If you get the line @code{location: gnu/packages/bar.scm:174:2},\n"
 "add @code{bar} to the @code{use-package-modules} form."
 msgstr ""
+"Вы можете использовать @command{guix package --show=foo | grep location},\n"
+"чтобы найти место расположения пакета @code{foo}.  Если вы увидите строку\n"
+"@code{location: gnu/packages/bar.scm:174:2}, добавьте @code{bar}\n"
+"в @code{use-package-modules}.\n"
 
 #: gnu.scm:108
 #, scheme-format
 msgid "Try adding @code{(use-package-modules ~a)}."
-msgstr ""
+msgstr "Попробуйте добавить @code{(use-package-modules ~a)}"
 
 #: gnu.scm:123
 #, scheme-format
@@ -45,6 +49,8 @@ msgid ""
 "If you get the line @code{location: gnu/services/foo.scm:188:2},\n"
 "add @code{foo} to the @code{use-service-modules} form."
 msgstr ""
+"Вы можете использовать команду @command{guix system search ~a} для\n"
+"поиска сервиса, совпадающего со строкой @code{~a}."
 
 #: gnu.scm:132
 #, scheme-format
