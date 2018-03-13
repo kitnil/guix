@@ -6427,3 +6427,52 @@ compressed JSON header blocks.
 @item @command{inflatehd} converts such compressed headers back to JSON pairs.
 @end itemize\n")
     (license l:expat)))
+
+(define-public httpie
+  (package
+    (name "httpie")
+    (version "0.9.8")
+    (source
+     (origin
+       (method url-fetch)
+       ;; PyPI source doesn't provide tests.
+       (uri (string-append "https://github.com/jakubroztocil/httpie/archive/"
+                           version ".tar.gz"))
+       (sha256
+        (base32
+         "1iwdp5ckd2qi81nbz26c0j3syzfcyc09c6jwaw7k3ab0ivfnbk2w"))))
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (add-installed-pythonpath inputs outputs)
+             (setenv "PATH" (string-append (assoc-ref outputs "out") "/bin"
+                                           ":" (getenv "PATH")))
+             (invoke "python" "setup.py" "test"
+                     "-v"
+                     ;; "-k"
+                     ;; (string-append
+                     ;;  ;; These tests attempt to make a connection to
+                     ;;  ;; an external web service.
+                     ;;  "not TestBinaryResponseData.test_binary_suppresses_when_terminal"
+                     ;;  ;; " and not test_ia"
+                     ;;  )
+                     ))))))
+    (build-system python-build-system)
+    (propagated-inputs
+     `(("python-docutils" ,python-docutils)
+       ("python-mock" ,python-mock)
+       ("python-httpbin" ,python-httpbin)
+       ("python-pygments" ,python-pygments)
+       ("python-pytest" ,python-pytest)
+       ("python-pytest-cov" ,python-pytest-cov)
+       ("python-pytest-httpbin" ,python-pytest-httpbin)
+       ("python-requests" ,python-requests)
+       ("python-tox" ,python-tox)
+       ("python-wheel" ,python-wheel)))
+    (home-page "https://github.com/jakubroztocil/httpie")
+    (synopsis "cURL for humans")
+    (description "This package provides cURL for humans.")
+    ;; What BSD close?
+    (license #f)))
