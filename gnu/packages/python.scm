@@ -5619,8 +5619,9 @@ markdown_py is also provided to convert Markdown files to HTML.")
      (origin
        (method url-fetch)
        (uri (string-append
-             "https://pypi.python.org/packages/source/p/ptyprocess/ptyprocess-"
-             version ".tar.gz"))
+             "https://pypi.python.org/packages/51/83/"
+             "5d07dc35534640b06f9d9f1a1d2bc2513fb9cc7595a1b0e28ae5477056ce/"
+             "ptyprocess-" version ".tar.gz"))
        (sha256
         (base32
          "0ra31k10v3629xq0kdn8lwmfbi97anmk48r03yvh7mks0kq96hg6"))))
