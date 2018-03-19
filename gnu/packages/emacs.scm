@@ -153,6 +153,9 @@
     (arguments
      `(#:phases
        (modify-phases %standard-phases
+         (add-after 'unpack 'fix-subr-shell-path
+           (lambda _
+             (substitute* "lisp/subr.el" (("/bin/sh") (which "sh")))))
          (add-before 'configure 'fix-/bin/pwd
            (lambda _
              ;; Use `pwd', not `/bin/pwd'.
