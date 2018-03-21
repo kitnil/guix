@@ -29,13 +29,20 @@
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages base)
   #:use-module (gnu packages curl)
+  #:use-module (gnu packages compression)
   #:use-module (gnu packages emacs)
   #:use-module (gnu packages fribidi)
+  #:use-module (gnu packages kde-frameworks)
+  #:use-module (gnu packages libreoffice)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages readline)
   #:use-module (gnu packages texinfo)
   #:use-module (gnu packages compression)
-  #:use-module (gnu packages tcl))
+  #:use-module (gnu packages tcl)
+  #:use-module (gnu packages video)
+  #:use-module (gnu packages qt)
+  #:use-module (gnu packages xiph)
+  #:use-module (gnu packages xorg))
 
 
 (define-public vera
@@ -282,3 +289,80 @@ translator powered by Google Translate (default), Bing Translator,
 Yandex.Translate and Apertium.  It gives you easy access to one of these
 translation engines from your terminal.")
     (license public-domain)))
+
+(define-public goldendict
+  (package
+    (name "goldendict")
+    (version "1.5.0RC2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://github.com/goldendict/goldendict/archive/"
+                           version ".tar.gz"))
+       (file-name (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32
+         "1pizz39l61rbps0wby75fkvzyrah805257j33siqybwhsfiy1kmw"))))
+    (build-system gnu-build-system)
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+         (replace 'configure
+           (lambda* (#:key outputs #:allow-other-keys)
+             (invoke "qmake"
+                     (string-append "PREFIX=" (assoc-ref outputs "out"))))))))
+    (inputs
+     `(("qtbase" ,qtbase)
+       ("hunspell" ,hunspell)
+       ("libxtst" ,libxtst)
+       ("libzip" ,libzip)
+       ("libvorbis" ,libvorbis)
+       ;; TODO: ("libao" ,libao)
+       ("qtwebkit" ,qtwebkit)
+       ("qtsvg" ,qtsvg)
+       ("qtx11extras" ,qtx11extras)
+       ("qttools" ,qttools)
+       ("phonon" ,phonon)
+       ("ffmpeg" ,ffmpeg)))
+    (home-page "http://goldendict.org")
+    (synopsis "Feature-rich dictionary lookup program")
+    (description
+     "This package provides feature-rich dictionary lookup program.
+
+Features:
+
+@itemize
+@item Use of WebKit for an accurate articles' representation,
+complete with all formatting, colors, images and links.
+@item Support of multiple dictionary file formats, namely:
+
+@itemize
+@item Babylon .BGL files, complete with images and resources
+@item StarDict .ifo/.dict./.idx/.syn dictionaries
+@item Dictd .index/.dict(.dz) dictionary files
+@item ABBYY Lingvo .dsl source files, together with abbreviations.
+The files can be optionally compressed with dictzip.  Dictionary
+resources can be packed together into a .zip file.
+@item ABBYY Lingvo .lsa/.dat audio archives.
+Those can be indexed separately, or be referred to from .dsl files.
+@end itemize
+
+@item Support for Wikipedia, Wiktionary,
+or any other MediaWiki-based sites to perform lookups in.
+@item Ability to use arbitrary websites as dictionaries
+via templated Url patterns.
+@item Hunspell-based morphology system, used for word stemming
+and spelling suggestions.
+@item Ability to index arbitrary directories with audio files
+for pronunciation lookups.
+@item Full Unicode case, diacritics, punctuation and whitespace folding.
+This means the ability to type in words without any accents,
+correct case, punctuation or spaces (e.g.  typing 'Grussen' would
+yield 'grüßen' in German dictionaries).
+@item Scan popup functionality.  A small window pops up with the
+translation of a word chosen from another application.
+@item Support for global hotkeys.  You can spawn the program window at
+any point, or directly translate a word from the clipboard.
+@item Tabbed browsing.
+@end itemize")
+    (license gpl2+)))
