@@ -228,6 +228,7 @@ GNU_SYSTEM_MODULES =				\
   %D%/packages/indent.scm			\
   %D%/packages/inklingreader.scm		\
   %D%/packages/inkscape.scm			\
+  %D%/packages/inxi.scm			\
   %D%/packages/irc.scm  			\
   %D%/packages/iso-codes.scm			\
   %D%/packages/java.scm				\
