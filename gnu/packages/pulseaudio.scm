@@ -29,6 +29,7 @@
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
+  #:use-module (guix build-system trivial)
   #:use-module (gnu packages)
   #:use-module (gnu packages algebra)
   #:use-module (gnu packages autotools)
@@ -43,6 +44,45 @@
   #:use-module (gnu packages m4)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages xiph))
+
+(define-public pulseaudio-alsa
+  (package
+    (name "pulseaudio-alsa")
+    (version "0")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((out (assoc-ref %outputs "out"))
+                (etc (string-append out "/etc")))
+           (mkdir-p etc)
+           (call-with-output-file (string-append etc "/asound.conf")
+             (lambda (port)
+               (display "# Use PulseAudio by default
+pcm.!default {
+  type pulse
+  fallback \"sysdefault\"
+  hint {
+    show on
+    description \"Default ALSA Output (currently PulseAudio Sound Server)\"
+  }
+}
+
+ctl.!default {
+  type pulse
+  fallback \"sysdefault\"
+}
+"
+                        port)))
+           #t))))
+    (synopsis "ALSA Configuration for PulseAudio")
+    (description "This package provides a @file{asound.conf} file to configure
+ALSA for PulseAudio.")
+    (home-page #f)
+    (license l:gpl3+)))
 
 (define-public libsndfile
   (package
