@@ -26,6 +26,8 @@
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-26)
+  #:use-module (srfi srfi-41)
+  #:use-module (gnu packages)
   #:use-module ((guix download) #:select (download-to-store))
   #:use-module (guix import utils)
   #:use-module (guix http-client)
@@ -37,7 +39,8 @@
   #:use-module (guix packages)
   #:use-module ((guix utils) #:select (call-with-temporary-output-file))
   #:export (elpa->guix-package
-            %elpa-updater))
+            %elpa-updater
+            recursive-import))
 
 (define (elpa-dependencies->names deps)
   "Convert DEPS, a list of symbol/version pairs à la ELPA, to a list of
@@ -288,5 +291,81 @@ type '<elpa-package>'."
    (description "Updater for ELPA packages")
    (pred package-from-gnu.org?)
    (latest latest-release)))
+
+(define (guix-name name)
+  "Return a Guix package name for a given Emacs package name."
+  (string-append "emacs-" (string-map (match-lambda
+                                        (#\_ #\-)
+                                        (#\. #\-)
+                                        (chr (char-downcase chr)))
+                                      name)))
+
+(define* (recursive-import package-name #:optional (repo 'gnu))
+  "Generate a stream of package expressions for PACKAGE-NAME and all its
+dependencies."
+  (define (propagated-inputs package)
+    "Return a list of package names in propagated inputs from PACKAGE."
+    (and=> (match package
+             ((package fields ...) (assq 'propagated-inputs fields))
+             (#f #f))
+           (match-lambda
+               ((propagated-inputs (qp ((package-name package) ...)))
+                (map (cut string-drop <> (string-length "emacs-"))
+                     package-name))
+             (#f #f))))
+  (let* ((package (elpa->guix-package package-name repo))
+         (dependencies (propagated-inputs package)))
+    (if (not package)
+        stream-null
+
+        ;; Generate a lazy stream of package expressions for all unknown
+        ;; dependencies in the graph.
+        (let* ((make-state (lambda (queue done)
+                             (cons queue done)))
+               (next       (match-lambda
+                             (((next . rest) . done) next)))
+               (imported   (match-lambda
+                             ((queue . done) done)))
+               (done?      (match-lambda
+                             ((queue . done)
+                              (zero? (length queue)))))
+               (unknown?   (lambda* (dependency #:optional (done '()))
+                             (and (not (member dependency
+                                               done))
+                                  (null? (find-packages-by-name
+                                          (guix-name dependency))))))
+               (update     (lambda (state new-queue)
+                             (match state
+                               (((head . tail) . done)
+                                (make-state (lset-difference
+                                             equal?
+                                             (lset-union equal? new-queue tail)
+                                             done)
+                                            (cons head done)))))))
+          (stream-cons
+           package
+           (stream-unfold
+            ;; map: produce a stream element
+            (lambda (state)
+              (elpa->guix-package (next state) repo))
+
+            ;; predicate
+            (negate done?)
+
+            ;; generator: update the queue
+            (lambda (state)
+              (let* ((package (elpa->guix-package (next state) repo))
+                     (dependencies (propagated-inputs package)))
+                (if package
+                    (update state (filter (cut unknown? <>
+                                               (cons (next state)
+                                                     (imported state)))
+                                          dependencies))
+                    ;; TODO: Try the other archives before giving up
+                    (update state (imported state)))))
+
+            ;; initial state
+            (make-state (filter unknown? dependencies)
+                        (list package-name))))))))
 
 ;;; elpa.scm ends here
