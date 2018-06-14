@@ -1386,6 +1386,30 @@ a collection of versions properly, handles prerelease/beta versions, can
 increment versions.")
       (license license:mpl2.0))))
 
+(define-public go-github-com-cenkalti-backoff
+  (let ((commit "2ea60e5f094469f9e65adb9cd103795b73ae743e"))
+    (package
+      (name "go-github-com-cenkalti-backoff")
+      (version (git-version "2.0.0" "1" commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/cenkalti/backoff.git")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "0k4899ifpir6kmfxli8a2xfj5zdh0xb2jd0fq2r38wzd4pk25ipr"))))
+      (build-system go-build-system)
+      (arguments
+       '(#:import-path "github.com/cenkalti/backoff"))
+      (home-page "https://github.com/cenkalti/backoff")
+      (synopsis "Exponential backoff algorithm in Go")
+      (description
+       "This package provides the exponential backoff algorithm in Go.")
+      (license license:expat))))
+
 (define-public go-github-com-jpillora-backoff
   (let ((commit
          "06c7a16c845dc8e0bf575fafeeca0f5462f5eb4d")
