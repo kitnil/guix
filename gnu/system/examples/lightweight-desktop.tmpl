@@ -3,8 +3,23 @@
 ;; environments.
 
 (use-modules (gnu) (gnu system nss))
-(use-service-modules desktop)
-(use-package-modules bootloaders certs ratpoison suckless wm)
+(use-service-modules desktop xorg)
+(use-package-modules bootloaders certs lisp bash)
+
+(define %custom-desktop-services
+  (modify-services %desktop-services
+    (special-files-service-type config => `(("/bin/sh"
+                                             ,(file-append
+                                               bash "/bin/sh"))
+                                            ("/usr/bin/env"
+                                             ,(file-append
+                                               coreutils "/bin/env"))))
+    (slim-service-type config => (slim-configuration
+                                  (inherit config)
+                                  (auto-login? #t)
+                                  (auto-login-session (file-append sbcl-stumpwm
+                                                                   "/bin/stumpwm"))
+                                  (default-user "alice")))))
 
 (operating-system
   (host-name "antelope")
@@ -40,13 +55,13 @@
 
   ;; Add a bunch of window managers; we can choose one at
   ;; the log-in screen with F1.
-  (packages (cons* ratpoison i3-wm i3status dmenu ;window managers
+  (packages (cons* sbcl-stumpwm
                    nss-certs                      ;for HTTPS access
                    %base-packages))
 
   ;; Use the "desktop" services, which include the X11
   ;; log-in service, networking with NetworkManager, and more.
-  (services %desktop-services)
+  (services %custom-desktop-services)
 
   ;; Allow resolution of '.local' host names with mDNS.
   (name-service-switch %mdns-host-lookup-nss))
