@@ -541,6 +541,22 @@ and exploration tool, since it can create almost any kind of connection you
 would need and has several interesting built-in capabilities.")
     (license license:gpl2+)))
 
+(define-public netcat-openbsd
+  (package
+    (inherit netcat)
+    (name "netcat-openbsd")
+    (version "1.190")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "http://http.debian.net/debian/pool/main/n/netcat-openbsd/netcat-openbsd_"
+             version ".orig.tar.gz"))
+       (file-name (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32
+         "0dp571m42zc7wvb9bf4hz5a08rcc5fknf0gdp98yq19c754c9k38"))))))
+
 (define-public sipcalc
   (package
     (name "sipcalc")
