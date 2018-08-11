@@ -1,5 +1,5 @@
 ;;; GNU Guix --- Functional package management for GNU
-;;; Copyright © 2017 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2017, 2018 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -152,6 +152,7 @@
          (group       (rsync-configuration-group config)))
     (list (shepherd-service
            (provision '(rsync))
+           (requirement '(loopback))
            (documentation "Run rsync daemon.")
            (start #~(make-forkexec-constructor
                      (list (string-append #$rsync "/bin/rsync")
