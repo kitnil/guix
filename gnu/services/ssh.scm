@@ -328,7 +328,10 @@ The other options should be self-descriptive."
   ;; proposed in <https://bugs.gnu.org/27155>.  Keep it internal/undocumented
   ;; for now.
   (%auto-start?          openssh-auto-start?
-                         (default #t)))
+                         (default #t))
+
+  (permit-tunnel?        openssh-configuration-permit-tunnel?
+                         (default #f)))
 
 (define %openssh-accounts
   (list (user-group (name "sshd") (system? #t))
@@ -463,6 +466,10 @@ of user-name/file-like tuples."
             (match-lambda
               ((name command) (format port "Subsystem\t~a\t~a\n" name command)))
             '#$(openssh-configuration-subsystems config))
+
+           (format port "PermitTunnel ~a \n"
+                   #$(if (openssh-configuration-permit-tunnel? config)
+                         "yes" "no"))
            #t)))))
 
 (define (openssh-shepherd-service config)
