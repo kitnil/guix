@@ -171,6 +171,13 @@ commands, displaying the results via a web interface.")
                  (("ncursesw\\/panel.h") "panel.h")
                  (("ncursesw\\/ncurses.h") "ncurses.h")))
              #t))
+         (add-after 'unpack 'patch-config-path
+           (lambda* (#:key outputs #:allow-other-keys)
+             (substitute* "Makefile"
+               (("(CONFIG_FILE=)\\$\\(DESTDIR\\)(/etc/multitail.conf)" line env value)
+                (string-append env value))
+               (("(\\$\\(CONFIG_FILE\\).new)" config-file)
+                (string-append (assoc-ref outputs "out") config-file)))))
          (delete 'configure))
        #:tests? #f)) ; no test suite (make check just runs cppcheck)
     (inputs `(("ncurses" ,ncurses)))
@@ -178,5 +185,8 @@ commands, displaying the results via a web interface.")
     (synopsis "Monitor multiple logfiles")
     (description
      "MultiTail allows you to monitor logfiles and command output in multiple
-windows in a terminal, colorize, filter and merge.")
+windows in a terminal, colorize, filter and merge.
+
+Copy a configuration file template to setup color schemes: @code{# cp
+$(guix build multitail)/etc/multitail.conf.new /etc/multitail.conf}.")
     (license license:gpl2+)))
