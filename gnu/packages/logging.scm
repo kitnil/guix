@@ -27,6 +27,7 @@
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system go)
   #:use-module (guix build-system python)
   #:use-module (gnu packages)
   #:use-module (gnu packages ncurses)
@@ -190,3 +191,94 @@ windows in a terminal, colorize, filter and merge.
 Copy a configuration file template to setup color schemes: @code{# cp
 $(guix build multitail)/etc/multitail.conf.new /etc/multitail.conf}.")
     (license license:gpl2+)))
+
+(define-public telegraf
+  (package
+    (name "telegraf")
+    (version "1.7.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/influxdata/telegraf/archive/"
+                                  version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0ggnn4siz3f0snx4jq6yflrn98szi71h35m9dshvm02dszzy5q97"))))
+    (build-system go-build-system)
+    (arguments
+     `(#:import-path "github.com/influxdata/telegraf"
+      ;;  #:unpack-path "github.com/restic"
+      ;; We don't need to install the source code for end-user applications.
+       #:install-source? #f
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'build
+           (lambda* (#:key inputs #:allow-other-keys)
+             (with-directory-excursion (string-append
+                                        "src/github.com/influxdata/telegraf/telegraf-"
+                                        ,version)
+               (invoke "go" "run" "cmd/telegraf/telegraf.go"))))
+
+         ;; (replace 'check
+         ;;   (lambda _
+         ;;     (with-directory-excursion (string-append
+         ;;                                "src/github.com/restic/restic-"
+         ;;                                ,version)
+         ;;       ;; Disable FUSE tests.
+         ;;       (setenv "RESTIC_TEST_FUSE" "0")
+         ;;       (invoke "go" "run" "build.go" "--test"))))
+
+         ;; (replace 'install
+         ;;   (lambda* (#:key outputs #:allow-other-keys)
+         ;;     (let ((out (assoc-ref outputs "out"))
+         ;;           (src (string-append "src/github.com/restic/restic-"
+         ;;                               ,version)))
+         ;;       (install-file (string-append src "/restic")
+         ;;                     (string-append out "/bin"))
+         ;;       #t)))
+
+         ;; (add-after 'install 'install-docs
+         ;;   (lambda* (#:key outputs #:allow-other-keys)
+         ;;     (let* ((out (assoc-ref outputs "out"))
+         ;;            (man "/share/man")
+         ;;            (man-section (string-append man "/man"))
+         ;;            (src (string-append "src/github.com/restic/restic-"
+         ;;                                ,version "/doc/man/")))
+         ;;       ;; Install all the man pages to "out".
+         ;;       (for-each
+         ;;         (lambda (file)
+         ;;           (install-file file
+         ;;                         (string-append out man-section
+         ;;                                        (string-take-right file 1))))
+         ;;         (find-files src "\\.[1-9]"))
+         ;;       #t)))
+
+         ;; (add-after 'install-docs 'install-shell-completion
+         ;;   (lambda* (#:key outputs #:allow-other-keys)
+         ;;     (let* ((out (assoc-ref outputs "out"))
+         ;;            (bin (string-append out "/bin"))
+         ;;            (etc (string-append out "/etc"))
+         ;;            (share (string-append out "/share")))
+         ;;       (for-each
+         ;;        (lambda (shell)
+         ;;          (let* ((shell-name (symbol->string shell))
+         ;;                 (dir (string-append "etc/completion/" shell-name)))
+         ;;            (mkdir-p dir)
+         ;;            (invoke (string-append bin "/restic") "generate"
+         ;;                    (string-append "--" shell-name "-completion")
+         ;;                    (string-append dir "/"
+         ;;                                   (case shell
+         ;;                                     ((bash) "restic")
+         ;;                                     ((zsh) "_restic"))))))
+         ;;        '(bash zsh))
+         ;;       (with-directory-excursion "etc/completion"
+         ;;         (install-file "bash/restic"
+         ;;                       (string-append etc "/bash_completion.d"))
+         ;;         (install-file "zsh/_restic"
+         ;;                       (string-append share "/zsh/site-functions")))
+         ;;       #t)))
+         )))
+    (home-page "https://www.influxdata.com/time-series-platform/telegraf/")
+    (synopsis "The plugin-driven server agent for collecting & reporting metrics")
+    (description "The plugin-driven server agent for collecting & reporting metrics.")
+    (license license:expat)))
