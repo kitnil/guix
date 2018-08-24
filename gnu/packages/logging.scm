@@ -27,13 +27,15 @@
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system go)
   #:use-module (guix build-system python)
   #:use-module (gnu packages)
   #:use-module (gnu packages ncurses)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-web)
-  #:use-module (gnu packages autotools))
+  #:use-module (gnu packages autotools)
+  #:use-module (gnu packages version-control))
 
 (define-public log4cpp
   (package
@@ -180,3 +182,95 @@ commands, displaying the results via a web interface.")
      "MultiTail allows you to monitor logfiles and command output in multiple
 windows in a terminal, colorize, filter and merge.")
     (license license:gpl2+)))
+
+(define-public collectd
+  (package
+    (name "collectd")
+    (version "5.8.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://collectd.org/files/"
+                                  name ".tar.bz2"))
+              
+              (sha256
+               (base32
+                "1j8mxgfq8039js2bscphd6cnriy35hk4jrxfjz5k6mghpdvg8vxh"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f))
+    (home-page "https://collectd.org")
+    (synopsis "Daemon which collects system performance statistics periodically")
+    (description "Daemon which collects system performance statistics periodically")
+    (license license:expat)))
+
+(define-public go-github-com-collectd
+  (let ((commit "c2e6ad57f9a2ad14d791164bd4217392483f4603")
+        (revision "0"))
+      (package
+        (name "go-github-com-collectd")
+        (version (git-version "0.3.0" revision commit))
+        (source (origin
+                  (method git-fetch)
+                  (uri (git-reference
+                        (url "https://github.com/collectd/go-collectd")
+                        (commit commit)))
+                  (file-name (string-append name "-" version "-checkout"))
+                  (sha256
+                   (base32
+                    "0rr9rnc777jk27a7yxhdb7vgkj493158a8k6q44x51s30dkp78x3"))))
+        (build-system go-build-system)
+        (arguments
+         `(#:import-path "github.com/collectd/go-collectd"
+           ;; We don't need to install the source code for end-user applications.
+           #:install-source? #f
+           ;; #:phases
+           ;; (modify-phases %standard-phases
+           ;;   (replace 'build
+           ;;     (lambda* (#:key import-path #:allow-other-keys)
+           ;;       (with-directory-excursion (string-append "src/" import-path)
+           ;;         (invoke "go" "install"
+           ;;                 "-v"  ; print the name of packages as they are compiled
+           ;;                 "-x"  ; print each command as it is invoked
+           ;;                 "-ldflags=-s -w" ; strip the symbol table and debug
+           ;;                 "./cmd/telegraf")))))
+           ))
+        (home-page "https://collectd.org")
+        (synopsis "Utilities for using collectd together with Golang")
+        (description synopsis)
+        (license license:expat))))
+
+(define-public telegraf
+  (let ((commit "578db7ef5156628efac1ffe98ca2b2a9cbfd89b2")
+        (revision "0"))
+    (package
+      (name "telegraf")
+      (version (git-version "1.7.0" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url
+                       "https://github.com/influxdata/telegraf")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "07n2198hps2dnf2z8aj7xvb5fz2iaqlnpnz6li3bz90q9g104arm"))))
+      (build-system go-build-system)
+      (arguments
+       `(#:import-path "github.com/influxdata/telegraf"
+         ;; We don't need to install the source code for end-user applications.
+         #:install-source? #f
+         #:phases
+         (modify-phases %standard-phases
+           (replace 'build
+             (lambda* (#:key import-path #:allow-other-keys)
+               (with-directory-excursion (string-append "src/" import-path)
+                 (invoke "go" "install"
+                         "-v"  ; print the name of packages as they are compiled
+                         "-x"  ; print each command as it is invoked
+                         "-ldflags=-s -w" ; strip the symbol table and debug
+                         "./cmd/telegraf")))))))
+      (home-page "https://www.influxdata.com/time-series-platform/telegraf/")
+      (synopsis "The plugin-driven server agent for collecting & reporting metrics")
+      (description "The plugin-driven server agent for collecting & reporting metrics.")
+      (license license:expat))))
