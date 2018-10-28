@@ -848,7 +848,7 @@ IPP specifications.")
         (use-modules (guix build utils))
         (define (mkdir-p/perms directory owner perms)
           (mkdir-p directory)
-          (chown "/var/run/cups" (passwd:uid owner) (passwd:gid owner))
+          (chown directory (passwd:uid owner) (passwd:gid owner))
           (chmod directory perms))
         (define (build-subject parameters)
           (string-concatenate
@@ -897,6 +897,7 @@ IPP specifications.")
           (mkdir-p/perms "/var/log/cups" user #o755)
           (mkdir-p/perms "/etc/cups" user #o755)
           (mkdir-p/perms "/etc/cups/ssl" user #o700)
+          (mkdir-p/perms "/var/cache/cups" user #o755)
           ;; This certificate is used for HTTPS connections to the CUPS web
           ;; interface.
           (create-self-signed-certificate-if-absent
