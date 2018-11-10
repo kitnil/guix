@@ -25,9 +25,11 @@
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (gnu packages)
   #:use-module (guix packages)
+  #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages boost)
   #:use-module (gnu packages docbook)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages databases)
@@ -38,11 +40,13 @@
   #:use-module (gnu packages perl)
   #:use-module (gnu packages perl-compression)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages serialization)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages texinfo)
   #:use-module (gnu packages version-control)
   #:use-module (gnu packages web)
   #:use-module (gnu packages xml)
+  #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu))
 
 (define-public hydra
@@ -290,3 +294,121 @@ their dependencies.")
 intended as a replacement for Hydra.")
       (home-page "https://www.gnu.org/software/guix/")
       (license l:gpl3+))))
+
+(define-public laminar
+  (package
+    (name "laminar")
+    (version "0.6-git")
+    (source
+     (origin (method url-fetch)
+             (uri (string-append "https://github.com/ohwgiles/laminar/archive/"
+                                 ;; Use a later commit, as there are a few
+                                 ;; improvements
+                                 "ce52a382f03b5e7c93e680f5bf834fd3769befa5"
+                                 ".tar.gz"))
+             (file-name (string-append name "-" version ".tar.gz"))
+             (sha256
+              (base32
+               "0m5sbvlr3wb8ll8a0jq6g61jy2q2kyaaxk3p9x0f0mj5l0bl689w"))))
+    (build-system cmake-build-system)
+    (arguments
+     '(#:configure-flags '("-DCMAKE_CXX_STANDARD=14")
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'patch-CMakeLists.txt
+           (lambda _
+             (substitute* "CMakeLists.txt"
+               (("file\\(DOWNLOAD.*\n$")
+                "# file download removed by Guix --")
+               (("install\\(FILES etc/laminar.service DESTINATION \\$\\{SYSTEMD\\_UNITDIR\\}\\)")
+                "")
+               (("install\\(FILES etc/laminar\\.conf DESTINATION etc\\)") "")
+               (("usr/") ""))
+             #t))
+         (add-after 'unpack 'install-resources
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (mkdir-p (string-append out "/share"))
+               (copy-recursively "src/resources"
+                                 (string-append out "/share/laminar")))
+             #t))
+         (add-after 'configure 'copy-in-javascript-and-css
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (mkdir-p "../build/js")
+             (for-each (lambda (file)
+                         (copy-file
+                          file
+                          (string-append
+                           "../build/js/" (strip-store-file-name file))))
+                       (map (lambda (input)
+                              (assoc-ref inputs input))
+                            '("vue.min.js"
+                              "vue-router.min.js"
+                              "ansi_up.js"
+                              "Chart.min.js")))
+
+             (mkdir-p "../build/css")
+             (copy-file
+              (assoc-ref inputs "bootstrap.min.css")
+              (string-append
+               "../build/css/"
+               (strip-store-file-name (assoc-ref inputs "bootstrap.min.css"))))
+
+             (let ((out (assoc-ref outputs "out")))
+               (copy-recursively "../build/js"
+                                 (string-append out "/share/laminar/js"))
+               (copy-recursively "../build/css"
+                                 (string-append out "/share/laminar/css")))
+             #t))
+         ;; TODO: Get tests working
+         (delete 'check))))
+    (inputs
+     `(("capnproto" ,capnproto)
+       ("rapidjson" ,rapidjson)
+       ("sqlite" ,sqlite)
+       ("boost" ,boost)
+       ("zlib" ,zlib)))
+    (native-inputs
+     `(;; TODO: Javascript
+       ("vue.min.js"
+        ,(origin (method url-fetch)
+                 (uri (string-append "https://cdnjs.cloudflare.com/ajax/libs/"
+                                     "vue/2.3.4/vue.min.js"))
+                 (sha256
+                  (base32
+                   "01zklp5cyik65dfn64m8h2y2dxzgbyzgmbf99y7fwgnf0155r7pq"))))
+       ("vue-router.min.js"
+        ,(origin (method url-fetch)
+                 (uri (string-append "https://cdnjs.cloudflare.com/ajax/libs/"
+                                     "vue-router/2.7.0/vue-router.min.js"))
+                 (sha256
+                  (base32
+                   "07gx7znb30rk1z7w6ca7dlfjp44q12bbq6jghwfm27mf6psa80as"))))
+       ("ansi_up.js"
+        ,(origin (method url-fetch)
+                 (uri (string-append "https://raw.githubusercontent.com/"
+                                     "drudru/ansi_up/v1.3.0/ansi_up.js"))
+                 (sha256
+                  (base32
+                   "1993dywxqi2ylnxybwk7m0s0bg2bq7kfllpyr0s8ck6chd0p8i6r"))))
+       ("Chart.min.js"
+        ,(origin (method url-fetch)
+                 (uri (string-append "https://cdnjs.cloudflare.com/ajax/libs/"
+                                     "Chart.js/2.7.2/Chart.min.js"))
+                 (sha256
+                  (base32
+                   "1jh4h12qchsba03dx03mrvs4r8g9qfjn56xm56jqzgqf7r209xq9"))))
+
+       ;; TODO: CSS
+       ("bootstrap.min.css"
+        ,(origin (method url-fetch)
+                 (uri (string-append "https://maxcdn.bootstrapcdn.com/bootstrap/"
+                                     "3.3.5/css/bootstrap.min.css"))
+                 (sha256
+                  (base32
+                   "11vx860prsx7wsy8b0yrrk04ih8kvrxkk8l16snsc4n286bdkyri"))))))
+    (synopsis "")
+    (description
+     "")
+    (home-page "https://laminar.ohwg.net/")
+    (license l:gpl3+)))
