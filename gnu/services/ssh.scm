@@ -442,8 +442,10 @@ of user-name/file-like tuples."
                    #$(if (openssh-configuration-allow-tcp-forwarding? config)
                          "yes" "no"))
            (format port "GatewayPorts ~a\n"
-                   #$(if (openssh-configuration-gateway-ports? config)
-                         "yes" "no"))
+                   #$(case (openssh-configuration-gateway-ports? config)
+                       ((#t) "yes")
+                       ((#f) "no")
+                       ((client) "clientspecified")))
            (format port "PidFile ~a\n"
                    #$(openssh-configuration-pid-file config))
            (format port "ChallengeResponseAuthentication ~a\n"
