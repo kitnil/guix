@@ -3062,3 +3062,55 @@ NumPy, and other traditional Python scientific computing packages.")
 
 (define-public python2-pyarrow
   (package-with-python2 python-pyarrow))
+
+(define-public python-bsddb3
+  (package
+    (name "python-bsddb3")
+    (version "6.2.6")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "bsddb3" version))
+       (sha256
+        (base32
+         "019db2y6bfmiqbrgg9x9f6h72qjmqh05czdn2v5sy9bl0gs23mj2"))))
+    (build-system python-build-system)
+    (inputs
+     `(("bdb" ,bdb)))
+    (arguments
+     '(#:phases
+       (let ((accept-license
+              (lambda ()
+                (setenv "YES_I_HAVE_THE_RIGHT_TO_USE_THIS_BERKELEY_DB_VERSION"
+                        "foo"))))
+         (modify-phases %standard-phases
+           (replace 'build
+             (lambda* (#:key inputs #:allow-other-keys)
+               (accept-license)
+               (invoke "python3" "setup.py" "build"
+                       (string-append "--berkeley-db="
+                                      (assoc-ref inputs "bdb")))))
+           (replace 'check
+             (lambda* (#:key inputs #:allow-other-keys)
+               (accept-license)
+               (delete-file "test2.py") ;Delete ‘Python 2’ only failing test.
+               (invoke "python3" "setup.py" "test"
+                       (string-append "--berkeley-db="
+                                      (assoc-ref inputs "bdb")))
+               (invoke "python3" "test3.py")))
+           (replace 'install
+             (lambda* (#:key outputs inputs #:allow-other-keys)
+               (add-installed-pythonpath inputs outputs)
+               (mkdir-p (string-append (assoc-ref outputs "out")
+                                       "/lib/python3.7/site-packages"))
+               (invoke "python3" "setup.py" "install"
+                       (string-append "--berkeley-db="
+                                      (assoc-ref inputs "bdb"))
+                       (string-append "--prefix=" (assoc-ref outputs "out")))))))))
+    (home-page
+     "https://www.jcea.es/programacion/pybsddb.htm")
+    (synopsis
+     "Python bindings for Oracle Berkeley DB")
+    (description
+     "Python bindings for Oracle Berkeley DB")
+    (license license:bsd-3)))
