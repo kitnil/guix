@@ -48,6 +48,7 @@
   #:use-module (gnu packages pcre)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-crypto)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages time)
   #:use-module (gnu packages tls))
@@ -305,6 +306,68 @@ solution (server-side)")))
       (description
        "This package provides an implementation of Zabbix Sender protocol")
       (license license:gpl3+))))
+
+
+
+(define-public python-alerta
+  (let ((commit "0eb1b75ece0efe7864d52a1e0843faf07c15afb6"))
+    (package
+      (name "python-alerta")
+      (version "6.5.0")
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/alerta/alerta")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1ggsacjzr94mj4jv9z3kw4935cvhqlrb4hm3bi26fll65qa5q8p9"))))
+      (build-system python-build-system)
+      (propagated-inputs
+       `(("python-bcrypt" ,python-bcrypt)
+         ("python-click" ,python-click)
+         ("python-pyjwt" ,python-pyjwt)
+         ("python-dateutil" ,python-dateutil)
+         ("python-dateutil",python-pyparsing)
+         ("python-psycopg2" ,python-psycopg2)
+         ("python-pymongo" ,python-pymongo)
+         ("python-pytz" ,python-pytz)
+         ("python-requests" ,python-requests)
+         ("python-six" ,python-six)
+         ("python-tabulate" ,python-tabulate)))
+      (home-page
+       "http://github.com/alerta/python-alerta")
+      (synopsis
+       "Alerta unified command-line tool and SDK")
+      (description
+       "This package provides Alerta unified command-line tool and SDK")
+      (license license:expat))))
+
+(define-public zabbix-alerta
+  (let ((commit "8e56d2c1770f3348f1dc15b2c49d369b07487b05"))
+    (package
+      (name "zabbix-alerta")
+      (version (git-version "0.1" "1" commit)) ; no upstream release
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/alerta/zabbix-alerta")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "11l0jvk80i3q1kn46yb5zaz0i1vlpcm02jm0ajfg3pdilnr5ajdx"))))
+      (build-system python-build-system)
+      (propagated-inputs
+       `(("python-protobix" ,python-protobix)
+         ("python-pyzabbix" ,python-pyzabbix)))
+      (home-page "https://github.com/alerta/zabbix-alerta")
+      (synopsis "Forward Zabbix alerts to the alerta monitoring system")
+      (description "This package allows to forward Zabbix alerts to the alerta
+monitoring system")
+      (license license:expat))))
 
 (define-public darkstat
   (package
