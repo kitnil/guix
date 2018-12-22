@@ -279,6 +279,34 @@ solution (server-side)")))
       (description "This package provides a Python interface to Zabbix API.")
       (license license:lgpl2.1+))))
 
+(define-public python-protobix
+  (let ((commit "96b7095a9c2485c9e1bdba098b7d82b93f91acb1"))
+    (package
+      (name "python-protobix")
+      (version (git-version "1.0.2" "1" commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/jbfavre/python-protobix")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1mmbd25l2x9fkakizcxi90qxw2bi8457fizagjlg6m39j74r68fy"))))
+      (build-system python-build-system)
+      (native-inputs
+       `(("python-mock" ,python-mock)
+         ("python-pytest" ,python-pytest)))
+      (propagated-inputs
+       `(("python-configobj" ,python-configobj)
+         ("python-simplejson" ,python-simplejson)))
+      (home-page "https://github.com/jbfavre/python-protobix/")
+      (synopsis "Implementation of Zabbix Sender protocol")
+      (description
+       "This package provides an implementation of Zabbix Sender protocol")
+      (license license:gpl3+))))
+
 (define-public darkstat
   (package
     (name "darkstat")
