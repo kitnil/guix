@@ -29,6 +29,7 @@
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix records)
+  #:use-module (guix utils)
   #:use-module ((guix ui) #:select (display-hint))
   #:use-module (ice-9 match)
   #:use-module (ice-9 rdelim)
@@ -512,7 +513,7 @@ create it manually.")
 (define zabbix-front-end-config
   (match-lambda
     (($ <zabbix-front-end-configuration>
-        _ db-host db-port db-name db-user db-password db-secret-file
+        location _ db-host db-port db-name db-user db-password db-secret-file
         zabbix-host zabbix-port)
      (mixed-text-file "zabbix.conf.php"
                       "\
@@ -527,18 +528,25 @@ $DB['DATABASE'] = '" db-name "';
 $DB['USER']     = '" db-user "';
 $DB['PASSWORD'] = '" (if (string-null? db-password)
                          (if (string-null? db-secret-file)
-                             (raise (condition
-                                     (&message
-                                      (message "\
-you must provide either 'db-secret-file' or 'db-password'"))))
+                             (raise (make-compound-condition
+                                     (condition
+                                      (&message
+                                       (message "\
+you must provide either 'db-secret-file' or 'db-password'")))
+                                     (condition
+                                      (&error-location (location location)))))
                              (string-trim-both
                               (with-input-from-file db-secret-file
                                 read-string)))
                          (begin
-                           (display-hint "\
-Consider using @code{db-secret-file} instead of @code{db-password} and unset
-@code{db-password} for security in @code{zabbix-front-end-configuration}.")
-                           db-password)) "';
+                           (display-hint (format #f
+                                                 "~{~a: ~}Consider using
+@code{db-secret-file} instead of @code{db-password} and unset
+@code{db-password} for security in @code{zabbix-front-end-configuration}."
+                                                 (list (location-file location)
+                                                       (location-line location)
+                                                       (location-column location))))
+db-password)) "';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
 $DB['SCHEMA'] = '';
