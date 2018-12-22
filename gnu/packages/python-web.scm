@@ -20,7 +20,7 @@
 ;;; Copyright © 2017 Adriano Peluso <catonano@gmail.com>
 ;;; Copyright © 2016 Dylan Jeffers <sapientech@sapientech@openmailbox.org>
 ;;; Copyright © 2016 David Craven <david@craven.ch>
-;;; Copyright © 2017 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2017, 2018 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2015, 2016 David Thompson <davet@gnu.org>
 ;;; Copyright © 2017 Mark Meyer <mark@ofosos.org>
 ;;; Copyright © 2018 Tomáš Čech <sleep_walker@gnu.org>
@@ -2915,3 +2915,42 @@ underlies Mozilla Persona.")
      "This is a Python library for interacting with the Firefox Accounts
 ecosystem.")
     (license license:mpl2.0)))
+
+(define-public python-httpretty
+  (package
+    (name "python-httpretty")
+    (version "0.9.6")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (pypi-uri "httpretty" version))
+       (sha256
+        (base32
+         "1p1rb4mpngh0632xrmdfhvc8yink519yfkqz97d2ww3y0x2jvd81"))))
+    (build-system python-build-system)
+    (inputs
+     `(("python-httplib2" ,python-httplib2)
+       ("python-rednose" ,python-rednose)
+       ("python-requests" ,python-requests)
+       ("python-sure" ,python-sure)
+       ("python-tornado" ,python-tornado)
+       ("python-urllib3" ,python-urllib3)))
+    (native-inputs
+     `(("python-coverage" ,python-coverage)
+       ("python-mock" ,python-mock)
+       ("python-nose" ,python-nose)))
+    (propagated-inputs
+     `(("python-six" ,python-six)))
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'fix-setup-cfg
+           (lambda _
+             (substitute* "setup.cfg"
+               (("with-coverage.*$") "")
+               (("with-randomly.*$") ""))
+             #t)))))
+    (home-page "https://httpretty.readthedocs.io")
+    (synopsis "HTTP client mock for Python")
+    (description "This package provides a HTTP client mock for Python")
+    (license license:expat)))
