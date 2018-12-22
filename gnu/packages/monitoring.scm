@@ -236,6 +236,48 @@ solution (client-side agent)")
     (description "This package provides a distributed monitoring
 solution (server-side)")))
 
+(define-public python-pyzabbix
+  (let ((commit "e1c1a0e6ca7d696206d05dee063184693faf35a5"))
+    (package
+      (name "python-pyzabbix")
+      (version (git-version "0.7.5" "1" commit))
+      (source
+       ;; PyPI doesn't include tests
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/lukecyca/pyzabbix")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "09561hrimhfpg1fdi3nw2cpsf1qky0j8cx8lwlwv82zrl84lxxl8"))))
+      (build-system python-build-system)
+      (inputs
+       `(("python-httpretty" ,python-httpretty)))
+      (native-inputs
+       `(("nose" ,python-nose)))
+      (propagated-inputs
+       `(("python-requests" ,python-requests)))
+      (arguments
+       '(#:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'upgrade-httpretty
+             (lambda _
+               (substitute* "setup.py"
+                 (("(httpretty)<0.8.7" line httpretty) httpretty))
+               #t))
+           (replace 'check
+             (lambda _
+               (setenv "PYTHONPATH"
+                       (string-append (getcwd) ":"
+                                      (getenv "PYTHONPATH")))
+               (invoke "nosetests" "-v"))))))
+      (home-page "https://github.com/lukecyca/pyzabbix")
+      (synopsis "Zabbix API Python interface")
+      (description "This package provides a Python interface to Zabbix API.")
+      (license license:lgpl2.1+))))
+
 (define-public darkstat
   (package
     (name "darkstat")
