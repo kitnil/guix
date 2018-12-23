@@ -115,7 +115,7 @@
 sudo -u postgres psql <<< \"create user zabbix password 'zabbix';\"
 ")
 
-(define %psql-db-zabbix-create-script
+(define %psql-db-list-roles
   "\
 sudo -u postgres psql --no-align <<< \\\\du
 ")
@@ -126,17 +126,12 @@ sudo -u postgres createdb -O zabbix -E Unicode -T template0 zabbix
 ")
 
 (define %psql-db-import-zabbix
-  #~(format #f "\
-cat ~a | sudo -u zabbix psql zabbix;
-cat ~a | sudo -u zabbix psql zabbix;
-cat ~a | sudo -u zabbix psql zabbix;
-"
-            (string-append #$zabbix-server:schema
-                           "/database/postgresql/schema.sql")
-            (string-append #$zabbix-server:schema
-                           "/database/postgresql/images.sql")
-            (string-append #$zabbix-server:schema
-                           "/database/postgresql/data.sql")))
+  #~(reduce (lambda (file files)
+            (string-append (format #f "cat ~a/database/postgresql/~a | sudo -u zabbix psql zabbix;~%"
+                                   #$zabbix-server:schema file)
+                           files))
+          '()
+          '("data.sql" "images.sql" "schema.sql")))
 
 (define* (run-zabbix-server-test name test-os)
   "Run tests in %ZABBIX-OS, which has zabbix running."
@@ -206,7 +201,7 @@ postgres|Superuser, Create role, Create DB, Replication, Bypass RLS|{}
 zabbix||{}
 "
             (marionette-eval
-             '(begin (let* ((port (open-pipe #$%psql-db-zabbix-create-script
+             '(begin (let* ((port (open-pipe #$%psql-db-list-roles
                                              OPEN_READ))
                             (output (read-string port))
                             (status (close-pipe port)))
