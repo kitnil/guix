@@ -75,9 +75,12 @@
 
 (define (uglify-field-name field-name)
   (let ((str (symbol->string field-name)))
-    (string-join (string-split (if (string-suffix? "?" str)
-                                   (substring str 0 (1- (string-length str)))
-                                   str)
+    (string-join (string-split (cond
+                                ((string-suffix? "?" str)
+                                 (substring str 0 (1- (string-length str))))
+                                ((string=? str "mailbox-location")
+                                 "location")
+                                (else str))
                                #\-)
                  "_")))
 
@@ -413,7 +416,7 @@ format.")
    "Prefix required to access this namespace.  This needs to be
 different for all namespaces. For example @samp{Public/}.")
 
-  (location
+  (mailbox-location
    (string "")
    "Physical location of the mailbox. This is in same format as
 mail_location, which is also the default for it.")
