@@ -35,6 +35,12 @@
   #:use-module (gnu packages golang)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pkg-config)
+  #:use-module (guix build-system emacs)
+  #:use-module (guix build-system python)
+  #:use-module (guix utils)
+  #:use-module (gnu packages check)
+  #:use-module (gnu packages emacs)
+  #:use-module (gnu packages emacs-xyz)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)
@@ -528,3 +534,58 @@ provisioning etc.")
     (description "This package provides a command line interface to Docker.")
     (home-page "http://www.docker.com/")
     (license license:asl2.0)))
+
+(define-public emacs-docker-tramp
+  (let ((commit "8e2b671eff7a81af43b76d9dfcf94ddaa8333a23"))
+    (package
+      (name "emacs-docker-tramp")
+      (version (git-version "0.1" "1" commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/emacs-pe/docker-tramp.el")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1lgjvrss25d4hwgygr1amsbkh1l4kgpsdjpxxpyfgil1542haan1"))))
+      (build-system emacs-build-system)
+      (home-page "https://github.com/emacs-pe/docker-tramp.el")
+      (synopsis "TRAMP integration for docker containers")
+      (description
+       "docker-tramp.el offers a TRAMP method for Docker containers.")
+      (license license:gpl3+))))
+
+(define-public emacs-docker
+  (let ((commit "e11c983e9fc4ecf1bd712c988d3fa850d7c63887"))
+    (package
+      (name "emacs-docker")
+      (version (git-version "1.2.0" "1" commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/Silex/docker.el")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "15kd86kaq1x6giz855q9w6zvnyc742j309j0pmm86rwx398g4rq1"))))
+      (inputs
+       `(("emacs-undercover" ,emacs-undercover)))
+      (propagated-inputs
+       `(("emacs-dash" ,emacs-dash)
+         ("emacs-docker-tramp" ,emacs-docker-tramp)
+         ("emacs-magit-popup" ,emacs-magit-popup)
+         ("emacs-s" ,emacs-s)
+         ("emacs-tablist" ,emacs-tablist)
+         ("emacs-json-mode" ,emacs-json-mode)))
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (delete 'check))))
+      (build-system emacs-build-system)
+      (home-page "https://github.com/Silex/docker.el")
+      (synopsis "Manage docker from Emacs")
+      (description "Emacs integration for Docker.")
+      (license license:gpl3+))))
