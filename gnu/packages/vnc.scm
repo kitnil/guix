@@ -89,9 +89,63 @@
          ("videoproto" ,videoproto)
          ("xcmiscproto" ,xcmiscproto)
          ("xineramaproto" ,xineramaproto)
+         ("xorg-server-source" ,(package-source xorg-server))
+         ("xkbcomp" ,xkbcomp)
+         ("xkeyboard-config" ,xkeyboard-config)
          ("zlib" ,zlib)))
       (arguments
-       `(#:tests? #f))
+       `(#:tests? #f
+         ;; TODO: /srv/src/nixpkgs/pkgs/tools/admin/tigervnc/default.nix
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'build 'build-xvnc
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let ((xorg-server (assoc-ref inputs "xorg-server-source"))
+                     (out (assoc-ref outputs "out"))
+                     (xkbcomp (assoc-ref inputs "xkbcomp"))
+                     (xkeyboard-config (assoc-ref inputs "xkeyboard-config")))
+                 (invoke "tar" "xvf" xorg-server)
+                 (for-each (lambda (file)
+                             (copy-file file "unix/xserver"))
+                           '("xorg-server.m4" "xorg-server.pc.in"))
+                 (with-directory-excursion "unix/xserver"
+                   (invoke "autoreconf" "-vfi")
+                   (invoke "./configure"
+                           "--disable-config-dbus"
+                           "--disable-config-hal"
+                           "--disable-config-udev"
+                           "--disable-devel-docs"
+                           "--disable-dmx"
+                           "--disable-docs"
+                           "--disable-dri"
+                           "--disable-dri2"
+                           "--disable-dri3"
+                           "--disable-kdrive"
+                           "--disable-static"
+                           "--disable-unit-tests"
+                           "--disable-xephyr"
+                           "--disable-xevie"
+                           "--disable-xnest"
+                           "--disable-xorg"
+                           "--disable-xorgcfg"
+                           "--disable-xprint"
+                           "--disable-xtrap"
+                           "--disable-xvfb"
+                           "--disable-xwayland"
+                           "--disable-xwin"
+                           "--disable-afb"
+                           "--disable-cfb"
+                           "--disable-mfb"
+                           "--enable-composite"
+                           "--enable-glx"
+                           "--enable-install-libxf86config"
+                           "--enable-xcsecurity"
+                           "--with-pic"
+                           (string-append "--prefix=" out)
+                           (string-append "--with-xkb-bin-directory=" xkbcomp "/bin")
+                           (string-append "--with-xkb-output=" out "/share/X11/xkb/compiled")
+                           (string-append "--with-xkb-path=" xkeyboard-config "/share/X11/xkb"))
+                   (invoke "make" (string-append "TIGERVNC_SRCDIR=" (getcwd) "/../..")))))))))
       (home-page "http://www.tigervnc.org/")
       (synopsis "Fork of tightVNC, made in cooperation with VirtualGL")
       (description "This package provides a fork of tightVNC, made in cooperation with VirtualGL")
