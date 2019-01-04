@@ -1,7 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2018 Sou Bunnbu <iyzsong@member.fsf.org>
 ;;; Copyright © 2018 Gábor Boskovits <boskovits@gmail.com>
-;;; Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2018, 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -439,6 +439,8 @@ configuration file."))
                    (list "SSL_CERT_DIR=/run/current-system/profile\
 /etc/ssl/certs"
                          "SSL_CERT_FILE=/run/current-system/profile\
+/etc/ssl/certs/ca-certificates.crt"
+                         "GIT_SSL_CAINFO=/run/current-system/profile\
 /etc/ssl/certs/ca-certificates.crt")))
          (stop #~(make-kill-destructor)))))
 
