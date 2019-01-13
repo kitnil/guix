@@ -4,7 +4,7 @@
 ;;; Copyright © 2017, 2018 Ricardo Wurmus <rekado@elephly.net>
 ;;; Copyright © 2018 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2018 Gábor Boskovits <boskovits@gmail.com>
-;;; Copyright © 2018, 2019 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -224,8 +224,6 @@ solution (client-side agent)")
                 "--with-libcurl"
                 (string-append "--with-zlib="
                                (assoc-ref %build-inputs "zlib"))
-                (string-append "--with-ssh2="
-                               (assoc-ref %build-inputs "libssh"))
                 ,flags))))
     (inputs
      `(("curl" ,curl)
@@ -235,7 +233,6 @@ solution (client-side agent)")
        ("zlib" ,zlib)
        ("net-snmp" ,net-snmp)
        ("curl" ,curl)
-       ("libssh" ,libssh)
        ,@(package-inputs zabbix-agentd)))
     (synopsis "Distributed monitoring solution (server-side)")
     (description "This package provides a distributed monitoring
