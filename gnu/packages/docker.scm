@@ -535,6 +535,32 @@ provisioning etc.")
     (home-page "http://www.docker.com/")
     (license license:asl2.0)))
 
+(define-public docker-proxy
+  (package
+    (name "docker-proxy")
+    (version "0.7.2-rc.1")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/docker/libnetwork.git")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "06753zcif1bns1xldbgy7pxsjshqhj4637vs8d0fdw6g4ww658j2"))))
+    (build-system go-build-system)
+    (arguments
+     `(#:import-path "github.com/docker/libnetwork"
+       ;; TODO: Tests require a running Docker daemon.
+       #:tests? #f))
+    (home-page "https://github.com/docker/libnetwork")
+    (synopsis "Go implementation for connecting containers")
+    (description "Libnetwork provides a native Go implementation for
+connecting containers.  The goal of libnetwork is to deliver a robust
+Container Network Model that provides a consistent programming interface and
+the required network abstractions for applications.")
+    (license license:asl2.0)))
+
 (define-public emacs-dockerfile-mode
   ;; Latest upstream release is too old.
   (let ((commit "7223d92718f78fa3ab15667cdb2ed90cfeb579e7"))
