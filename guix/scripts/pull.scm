@@ -1,6 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2013, 2014, 2015, 2017, 2018, 2019 Ludovic Courtès <ludo@gnu.org>
 ;;; Copyright © 2017 Marius Bakke <mbakke@fastmail.com>
+;;; Copyright © 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -78,6 +79,9 @@ Download and deploy the latest version of Guix.\n"))
   (display (G_ "
       --verbose          produce verbose output"))
   (display (G_ "
+      --channel=CHANNEL,URL[,branch][,commit]
+                         deploy the CHANNEL at URL"))
+  (display (G_ "
   -C, --channels=FILE    deploy the channels defined in FILE"))
   (display (G_ "
       --url=URL          download from the Git repository at URL"))
@@ -129,6 +133,20 @@ Download and deploy the latest version of Guix.\n"))
          (option '("branch") #t #f
                  (lambda (opt name arg result)
                    (alist-cons 'ref `(branch . ,arg) result)))
+         (option '("channel") #t #f
+                 (lambda (opt name arg result . rest)
+                   (let ((list->alist (match-lambda
+                                        ((key value)
+                                         (cons key value)))))
+                     (alist-cons 'channel
+                                 (match (map (cut string-split <> #\=)
+                                             (string-split arg #\,))
+                                   (((name) (url) args ...)
+                                    (map list->alist
+                                         `(("name" ,name)
+                                           ("url" ,url)
+                                           ,@args))))
+                                 result))))
          (option '(#\p "profile") #t #f
                  (lambda (opt name arg result)
                    (alist-cons 'profile (canonicalize-profile arg)
@@ -466,8 +484,33 @@ transformations specified in OPTS (resulting from '--url', '--commit', or
           result
           (leave (G_ "'~a' did not return a list of channels~%") file))))
 
+  (define alist->channel
+    (match-lambda
+      ((_ meta ...)
+       (channel
+        (name (string->symbol (assoc-ref meta "name")))
+        (url (assoc-ref meta "url"))
+        (branch (or (assoc-ref meta "branch") "master"))
+        (commit (assoc-ref meta "commit"))))))
+
+  (define (guix-channel? channel)
+    (case (channel-name channel)
+      ((guix) #t)
+      (else #f)))
+
+  (define channel-options
+    (filter (match-lambda
+              (('channel args ...) #t)
+              (_ #f))
+            opts))
+
   (define channels
-    (cond (file
+    (cond ((not (null? channel-options))
+           (let ((channels (map alist->channel channel-options)))
+             (if (null? (filter guix-channel? channels))
+                 (append channels %default-channels)
+                 channels)))
+          (file
            (load-channels file))
           ((file-exists? default-file)
            (load-channels default-file))
