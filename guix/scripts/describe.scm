@@ -1,6 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2018 Ludovic Courtès <ludo@gnu.org>
-;;; Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2018, 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -77,6 +77,16 @@ Display information about the channels currently in use.\n"))
 
 (define (display-package-search-path fmt)
   "Display GUIX_PACKAGE_PATH, if it is set, according to FMT."
+  (define* (paths->recutils paths #:optional (width (%text-width)))
+    (define width*
+      ;; The available number of columns once we've taken into account space
+      ;; for the initial "+ " prefix.
+      (if (> width 2) (- width 2) %text-width))
+
+    (string->recutils
+     (fill-paragraph (string-join (string-split paths #\:)) width*
+                     (string-length "dependencies: "))))
+
   (match (getenv "GUIX_PACKAGE_PATH")
     (#f #t)
     (string
@@ -84,8 +94,18 @@ Display information about the channels currently in use.\n"))
        ('human
         (format #t "~%GUIX_PACKAGE_PATH=\"~a\"~%" string))
        ('channels
-        (format #t (G_ "~%;; warning: GUIX_PACKAGE_PATH=\"~a\"~%")
-                string))))))
+        (format (current-warning-port)
+                (G_ "~%;; warning: GUIX_PACKAGE_PATH=\"~a\"~%") string))
+       ('json
+        (format (current-warning-port)
+                (scm->json-string
+                 `((name . "GUIX_PACKAGE_PATH")
+                   (paths . ,(string-split string #\:))))))
+       ('recutils
+        (format (current-warning-port)
+                "name: GUIX_PACKAGE_PATH")
+        (format (current-warning-port)
+                "~%paths: ~a~%~%" (paths->recutils string)))))))
 
 (define (channel->sexp channel)
   `(channel
