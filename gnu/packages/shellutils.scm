@@ -5,6 +5,7 @@
 ;;; Copyright © 2017 Stefan Reichör <stefan@xsteve.at>
 ;;; Copyright © 2018 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2018 Benjamin Slade <slade@jnanam.net>
+;;; Copyright © 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -127,7 +128,7 @@ are already there.")
        (modify-phases %standard-phases
          (delete 'configure)
          ;; Help the build scripts find the Go language dependencies.
-         (add-before 'unpack 'setup-go-environment
+         (add-after 'unpack 'setup-go-environment
            (assoc-ref go:%standard-phases 'setup-go-environment))
          (add-after 'install 'remove-go-references
            (assoc-ref go:%standard-phases 'remove-go-references)))))
