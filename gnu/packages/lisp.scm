@@ -14,6 +14,7 @@
 ;;; Copyright © 2018 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2019 Katherine Cox-Buday <cox.katherine.e@gmail.com>
 ;;; Copyright © 2019 Jesse Gildersleve <jessejohngildersleve@protonmail.com>
+;;; Copyright © 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -43,9 +44,11 @@
   #:use-module (guix build-system asdf)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages admin)
+  #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bdw-gc)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages curl)
   #:use-module (gnu packages ed)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
@@ -5282,3 +5285,27 @@ various levels and mix text with expressions.")
 
 (define-public ecl-log4cl
   (sbcl-package->ecl-package sbcl-log4cl))
+
+(define-public roswell
+  (package
+    (name "roswell")
+    (version "19.4.10.98")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/roswell/roswell.git")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0vq38ma23chvjkqy3m4j8k8q927p4djixwdgxn7ypbngqknp6dyz"))))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(("autoconf" ,autoconf)
+       ("automake" ,automake)))
+    (inputs
+     `(("curl" ,curl)))
+    (home-page "https://github.com/roswell/roswell/")
+    (synopsis "Lisp installer and launcher for major environment that just work")
+    (description "todo")
+    (license license:expat)))
