@@ -24105,6 +24105,54 @@ The Containerd package to use.
 @end table
 @end deftp
 
+@cindex Nix
+@subsubheading Nix service
+
+The @code{(gnu services nix)} module provides the following service.
+
+@defvr {Scheme Variable} nix-service-type
+
+This is the type of the service that runs build daemon of the
+@url{https://nixos.org/nix/, Nix} package manager.  Here is an example showing
+how to use it:
+
+@example
+(use-modules (gnu))
+(use-service-modules nix)
+(use-package-modules package-management)
+
+(operating-system
+  ;; @dots{}
+  (packages (append (list nix)
+                    %base-packages))
+
+  (services (append (list (service nix-service-type))
+                    %base-services)))
+@end example
+
+After @command{guix system reconfigure} you need to configure Nix for your
+user, e.g.:
+
+@example
+$ nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+$ nix-channel --update
+$ ln -s "/nix/var/nix/profiles/per-user/$USER/profile" ~/.nix-profile
+$ source /run/current-system/profile/etc/profile.d/nix.sh
+$ nix-env --install hello
+$ hello
+@end example
+
+You could add the following Bash snippet to your @file{~/.bashrc} file to load
+all Nix required variables automatically after login:
+
+@example
+if [ -f /run/current-system/profile/etc/profile.d/nix.sh ]
+then
+    . /run/current-system/profile/etc/profile.d/nix.sh
+fi
+@end example
+@end defvr
+
 @node Setuid Programs
 @section Setuid Programs
 
