@@ -10632,6 +10632,27 @@ macro takes a first argument (whose value must be an alist) and a body.")
 your Emacs.")
       (license license:gpl2+))))
 
+(define-public emacs-restart-emacs
+  (package
+    (name "emacs-restart-emacs")
+    (version "20180601.1031")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (string-append
+               "https://melpa.org/packages/restart-emacs-"
+               version
+               ".el"))
+        (sha256
+          (base32
+            "1rpn1881xrgm17hd33ngpzl9wn22f43h5n7d8zf57089hc1lzvrb"))))
+    (build-system emacs-build-system)
+    (home-page "https://github.com/iqbalansari/restart-emacs")
+    (synopsis "Restart Emacs from within Emacs")
+    (description "This package provides a simple command to restart Emacs from
+within Emacs.")
+    (license license:gpl3+)))
+
 (define-public emacs-sourcemap
   (package
     (name "emacs-sourcemap")
