@@ -11610,6 +11610,30 @@ interactive behavior should be different.")
 decreasing the default font size in all GUI Emacs frames.")
       (license license:gpl3+))))
 
+(define-public emacs-mixed-pitch
+  (package
+    (name "emacs-mixed-pitch")
+    (version "1.0.1")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (string-append
+               "https://stable.melpa.org/packages/mixed-pitch-"
+               version
+               ".el"))
+        (sha256
+          (base32
+            "1fw8y8pqvp9z5ipa7a2hvqhjil63mflv04hih7a8k2rrrmhz6qiy"))))
+    (build-system emacs-build-system)
+    (home-page "https://gitlab.com/jabranham/mixed-pitch")
+    (synopsis "Mix variable- and fixed-pitch fonts in the same Emacs buffer")
+    (description
+      "@code{mixed-pitch-mode} is a minor mode that enables mixing
+variable-pitch and fixed-pitch fonts in the same buffer.  The list
+@code{mixed-pitch-fixed-pitch-faces} defines the faces that are kept
+fixed-pitch,everything else becomes variable-pitch.")
+    (license license:gpl3+)))
+
 (define-public emacs-visual-regexp
   (package
     (name "emacs-visual-regexp")
