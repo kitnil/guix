@@ -4093,6 +4093,30 @@ of sixteen colors suitable for a wide range of applications.  Base16 is not a
 single theme but a set of guidelines with numerous implementations.")
     (license license:expat)))
 
+(define-public emacs-solaire-mode
+  (package
+    (name "emacs-solaire-mode")
+    (version "1.0.9")
+    (source
+      (origin
+        (method url-fetch)
+        (uri (string-append
+               "https://stable.melpa.org/packages/solaire-mode-"
+               version
+               ".el"))
+        (sha256
+          (base32
+            "0v64z243n4zxrv644bjmj3dnk621411hl15ghmy4i2c4ql4cp8fa"))))
+    (build-system emacs-build-system)
+    (home-page "https://github.com/hlissner/emacs-solaire-mode")
+    (synopsis "Change background of file-visiting buffers in Emacs")
+    (description
+      "@code{solaire-mode} is inspired by editors which visually distinguish
+code-editing windows from sidebars, popups, terminals, ecetera.  It changes the
+background of file-visiting buffers (and certain aspects of the UI) to make
+them easier to distinguish from other, less important buffers.")
+    (license license:expat)))
+
 (define-public emacs-prescient
   (package
     (name "emacs-prescient")
