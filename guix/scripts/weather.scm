@@ -172,82 +172,10 @@ about the derivations queued, as is the case with Hydra."
   (let/time ((time narinfos (lookup-narinfos server items)))
     (format #t "~a~%" server)
     (let ((obtained  (length narinfos))
-          (requested (length items))
-          (missing   (lset-difference string=?
-                                      items (map narinfo-path narinfos)))
-          (sizes     (append-map (lambda (narinfo)
-                                   (filter integer?
-                                           (narinfo-file-sizes narinfo)))
-                                 narinfos))
-          (time      (+ (time-second time)
-                        (/ (time-nanosecond time) 1e9))))
-      (format #t (G_ "  ~2,1f% substitutes available (~h out of ~h)~%")
-              (* 100. (/ obtained requested 1.))
-              obtained requested)
-      (let ((total (/ (reduce + 0 sizes) MiB)))
-        (match (length sizes)
-          ((? zero?)
-           (format #t (G_  "  unknown substitute sizes~%")))
-          (len
-           (if (= len obtained)
-               (format #t (G_ "  ~,1h MiB of nars (compressed)~%") total)
-               (format #t (G_ "  at least ~,1h MiB of nars (compressed)~%")
-                       total)))))
-      (format #t (G_ "  ~,1h MiB on disk (uncompressed)~%")
-              (/ (reduce + 0 (map narinfo-size narinfos)) MiB))
-      (format #t (G_ "  ~,3h seconds per request (~,1h seconds in total)~%")
-              (/ time requested 1.) time)
-      (format #t (G_ "  ~,1h requests per second~%")
-              (/ requested time 1.))
-
-      (guard (c ((http-get-error? c)
-                 (if (= 404 (http-get-error-code c))
-                     (format (current-error-port)
-                             (G_ "  (continuous integration information \
-unavailable)~%"))
-                     (format (current-error-port)
-                             (G_ "  '~a' returned ~a (~s)~%")
-                             (uri->string (http-get-error-uri c))
-                             (http-get-error-code c)
-                             (http-get-error-reason c)))))
-        (let* ((max    %query-limit)
-               (queue  (queued-builds server max))
-               (len    (length queue))
-               (histo  (histogram build-system
-                                  (lambda (build count)
-                                    (+ 1 count))
-                                  0 queue)))
-          (newline)
-          (unless (null? missing)
-            (match (queued-subset queue missing)
-              (#f #f)
-              ((= length queued)
-               (let ((missing (length missing)))
-                 (format #t (G_ "  ~,1f% (~h out of ~h) of the missing items \
-are queued~%")
-                         (* 100. (/ queued missing))
-                         queued missing)))))
-
-          (if (>= len max)
-              (format #t (G_ "  at least ~h queued builds~%") len)
-              (format #t (G_ "  ~h queued builds~%") len))
-          (for-each (match-lambda
-                      ((system . count)
-                       (format #t (G_ "      ~a: ~a (~0,1f%)~%")
-                               system count (* 100. (/ count len)))))
-                    histo))
-
-        (let* ((latest     (latest-builds server))
-               (builds/sec (throughput latest build-timestamp)))
-          (format #t (G_ "  build rate: ~1,2f builds per hour~%")
-                  (* builds/sec 3600.))
-          (for-each (match-lambda
-                      ((system . builds)
-                       (format #t (G_ "      ~a: ~,2f builds per hour~%")
-                               system
-                               (* (throughput builds build-timestamp)
-                                  3600.))))
-                    (histogram build-system cons '() latest)))))))
+          (requested (length items)))
+      (let ((var (lset-difference string=?
+                                  items (map narinfo-path narinfos))))
+                       (format #t "~{    missing: ~a~%~}" var)))))
 
 
 ;;;
