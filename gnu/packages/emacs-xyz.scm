@@ -15027,6 +15027,37 @@ Nix expressions.  It supports syntax highlighting, indenting and refilling of
 comments.")
     (license license:lgpl2.1+)))
 
+(define-public emacs-nix
+  (package
+    (name "emacs-nix")
+    (version "0.0.1")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/travisbhartwell/nix-emacs.git")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1lm7rkgf7q5g4ji6v1masfbhxdpwni8d77dapsy5k9p73cr2aqld"))))
+    defvar nixos-options-json-file
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-before 'build 'disable-nix
+           (lambda* (#:key inputs #:allow-other-keys)
+             (let ((perl (assoc-ref inputs "perl")))
+               (make-file-writable "lisp/magit-sequence.el")
+               (emacs-substitute-variables "lisp/magit-sequence.el"
+                 ("magit-perl-executable" (string-append perl "/bin/perl")))
+               #t))))))
+    (build-system emacs-build-system)
+    (home-page "https://github.com/travisbhartwell/nix-emacs/")
+    (synopsis "Set of useful Emacs modes and functions for Nix users")
+    (description "This package provides a set of useful Emacs modes and
+functions for Nix users.")
+    (license license:gpl3+)))
+
 (define-public emacs-simple-mpc
   ;; There have been no releases.
   (let ((commit "bee8520e81292b4c7353e45b193f9a13b482f5b2")
