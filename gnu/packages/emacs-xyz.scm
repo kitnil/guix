@@ -261,6 +261,47 @@ For remote processes a substitute is provided, which communicates with Emacs
 on stdout instead of using a socket as the Emacsclient does.")
     (license license:gpl3+)))
 
+(define-public emacs-libgit
+  (let ((commit "72d6b273159dd034fa2fb7bffb1ebff5e7ccba11"))
+    (package
+      (name "emacs-libgit")
+      (version (git-version "0.1" "1" commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/magit/libegit2.git")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "15vs68x7lcav5ihl27y3wwxv05whabahx6l7w3jbr9g5c8w38f8g"))))
+      (inputs
+       `(("libgit", libgit2)))
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'configure
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let ((libgit (assoc-ref inputs "libgit")))
+                 ;; .el is read-only in git.
+                 (chmod "libgit.el" #o644)
+                 ;; Specify the absolute file names of the various
+                 ;; programs so that everything works out-of-the-box.
+                 (emacs-substitute-variables
+                     "libgit.el"
+                   ("libgit--module-file"
+                    (string-append libgit "/lib/libgit2.so")))))))))
+      (build-system emacs-build-system)
+      (home-page "https://github.com/TheBB/libegit2")
+      (synopsis "Thin bindings to libgit2.")
+      (description
+       "This package provides thin bindings to libgit2. To use these bindings,
+issue a call to (require 'libgit). This will load the dynamic module,
+or prompt the user to build it.
+")
+      (license license:gpl2+))))
+
 (define-public emacs-magit
   ;; Version 2.90.1 has trouble loading the transient library,
   ;; so we use a more recent commit that fixes it.
