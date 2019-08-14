@@ -303,21 +303,19 @@ or prompt the user to build it.
       (license license:gpl2+))))
 
 (define-public emacs-magit
-  ;; Version 2.90.1 has trouble loading the transient library,
-  ;; so we use a more recent commit that fixes it.
-  (let ((commit "b4aec016b5577afa8d889f258b499814d1bb1d94"))
+  (let ((commit "5385e81f98abed2757720479e10f77a6021af28a"))
     (package
       (name "emacs-magit")
       (version (git-version "2.90.1" "1" commit))
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
-                      (url "https://github.com/magit/magit")
+                      (url "https://github.com/magit/magit.git")
                       (commit commit)))
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "0zl7v6z0y50pcgqsf2r8c1k3r5nwjad9ba7r6sgrnf4rc62br7jv"))))
+                  "1qwvnrqwd91d9w3ryv9lyc15i37la8yhcwk1b1v4n58sp0l6y5br"))))
       (build-system gnu-build-system)
       (native-inputs `(("texinfo" ,texinfo)
                        ("emacs" ,emacs-minimal)))
@@ -327,7 +325,8 @@ or prompt the user to build it.
       (propagated-inputs
        `(("dash" ,emacs-dash)
          ("with-editor" ,emacs-with-editor)
-         ("transient" ,emacs-transient)))
+         ("transient" ,emacs-transient)
+         ("emacs-libgit" ,emacs-libgit)))
       (arguments
        `(#:modules ((guix build gnu-build-system)
                     (guix build utils)
