@@ -276,23 +276,47 @@ on stdout instead of using a socket as the Emacsclient does.")
          (sha256
           (base32
            "15vs68x7lcav5ihl27y3wwxv05whabahx6l7w3jbr9g5c8w38f8g"))))
+      (native-inputs
+       `(("cmake" ,cmake)))
       (inputs
-       `(("libgit", libgit2)))
+       `(("libgit2", libgit2)))
       (arguments
-       `(#:phases
+       `(;; #:modules ((guix build emacs-build-system)
+         ;;            ((guix build cmake-build-system) #:prefix cmake:)
+         ;;            (guix build utils)
+         ;;            (guix build emacs-utils))
+         ;; #:imported-modules (,@%emacs-build-system-modules
+         ;;                     (guix build cmake-build-system))
+         #:phases
          (modify-phases %standard-phases
            (add-after 'unpack 'configure
              (lambda* (#:key inputs #:allow-other-keys)
-               (let ((libgit (assoc-ref inputs "libgit")))
+               (let ((libgit (assoc-ref inputs "libgit2")))
                  ;; .el is read-only in git.
                  (chmod "libgit.el" #o644)
                  ;; Specify the absolute file names of the various
                  ;; programs so that everything works out-of-the-box.
-                 (emacs-substitute-variables
-                     "libgit.el"
-                   ("libgit--module-file"
-                    (string-append libgit "/lib/libgit2.so")))))))))
-      (build-system emacs-build-system)
+                 ;; (emacs-substitute-variables
+                 ;;     "libgit.el"
+                 ;;   ("libgit--module-file"
+                 ;;    (string-append libgit "/lib/libgit2.so")))
+                 (rmdir "libgit2")
+                 (setenv "CMAKE_INCLUDE_PATH"
+                         (string-append (assoc-ref inputs "libgit2")
+                                        "/include/git2)"))
+                 (substitute* "CMakeLists.txt"
+                   (("add_subdirectory\\(libgit2\\)") ""
+                    ;; (string-append
+                    ;;  "set(INCLUDE_SEARCH_PATH "
+                    ;;  )
+                    ))
+                 ;; (symlink (assoc-ref inputs "libgit2") "libgit2")
+                 ;; (mkdir "build")
+                 ;; (with-directory-excursion "build"
+                 ;;   ;; (invoke "make")
+                 ;;   (invoke "cmake" "-DCMAKE_BUILD_TYPE=Debug"))
+                 ))))))
+      (build-system cmake-build-system)
       (home-page "https://github.com/TheBB/libegit2")
       (synopsis "Thin bindings to libgit2.")
       (description
