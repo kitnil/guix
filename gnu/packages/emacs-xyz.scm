@@ -277,16 +277,18 @@ on stdout instead of using a socket as the Emacsclient does.")
           (base32
            "15vs68x7lcav5ihl27y3wwxv05whabahx6l7w3jbr9g5c8w38f8g"))))
       (native-inputs
-       `(("cmake" ,cmake)))
+       `(("cmake" ,cmake)
+         ;; We cannot use `emacs-minimal' because of module-file-suffix.
+         ("emacs" ,emacs)))
       (inputs
-       `(("libgit2", libgit2)))
+       `(("libgit2", libgit2-checkout)))
       (arguments
-       `(;; #:modules ((guix build emacs-build-system)
-         ;;            ((guix build cmake-build-system) #:prefix cmake:)
-         ;;            (guix build utils)
-         ;;            (guix build emacs-utils))
-         ;; #:imported-modules (,@%emacs-build-system-modules
-         ;;                     (guix build cmake-build-system))
+       `(#:modules ((guix build cmake-build-system)
+                    ((guix build emacs-build-system) #:prefix emacs:)
+                    (guix build utils)
+                    (guix build emacs-utils))
+         #:imported-modules (,@%emacs-build-system-modules
+                             (guix build cmake-build-system))
          #:phases
          (modify-phases %standard-phases
            (add-after 'unpack 'configure
@@ -296,10 +298,10 @@ on stdout instead of using a socket as the Emacsclient does.")
                  (chmod "libgit.el" #o644)
                  ;; Specify the absolute file names of the various
                  ;; programs so that everything works out-of-the-box.
-                 ;; (emacs-substitute-variables
-                 ;;     "libgit.el"
-                 ;;   ("libgit--module-file"
-                 ;;    (string-append libgit "/lib/libgit2.so")))
+                 (emacs-substitute-variables
+                     "libgit.el"
+                   ("libgit--module-file"
+                    (string-append libgit "/lib/libgit2.so")))
                  (rmdir "libgit2")
                  (setenv "CMAKE_INCLUDE_PATH"
                          (string-append (assoc-ref inputs "libgit2")
@@ -315,7 +317,11 @@ on stdout instead of using a socket as the Emacsclient does.")
                  ;; (with-directory-excursion "build"
                  ;;   ;; (invoke "make")
                  ;;   (invoke "cmake" "-DCMAKE_BUILD_TYPE=Debug"))
-                 ))))))
+                 )))
+           (add-before 'check 'pre-check
+             (lambda _
+               (symlink "../source/libgit.el" "libgit.el")))
+           )))
       (build-system cmake-build-system)
       (home-page "https://github.com/TheBB/libegit2")
       (synopsis "Thin bindings to libgit2.")
