@@ -281,7 +281,9 @@ on stdout instead of using a socket as the Emacsclient does.")
          ;; We cannot use `emacs-minimal' because of module-file-suffix.
          ("emacs" ,emacs)))
       (inputs
-       `(("libgit2", libgit2-checkout)))
+       `(("libgit2", libgit2-checkout)
+         ;; `git' is required for tests.
+         ("git" ,git)))
       (arguments
        `(#:modules ((guix build cmake-build-system)
                     ((guix build emacs-build-system) #:prefix emacs:)
@@ -289,6 +291,7 @@ on stdout instead of using a socket as the Emacsclient does.")
                     (guix build emacs-utils))
          #:imported-modules (,@%emacs-build-system-modules
                              (guix build cmake-build-system))
+         #:configure-flags '("-DCMAKE_BUILD_TYPE=Debug")
          #:phases
          (modify-phases %standard-phases
            (add-after 'unpack 'configure
@@ -301,7 +304,8 @@ on stdout instead of using a socket as the Emacsclient does.")
                  (emacs-substitute-variables
                      "libgit.el"
                    ("libgit--module-file"
-                    (string-append libgit "/lib/libgit2.so")))
+                    ;; (string-append libgit "/lib/libgit2.so")
+                    (string-append (getcwd) "/libegit2.so")))
                  (rmdir "libgit2")
                  (setenv "CMAKE_INCLUDE_PATH"
                          (string-append (assoc-ref inputs "libgit2")
