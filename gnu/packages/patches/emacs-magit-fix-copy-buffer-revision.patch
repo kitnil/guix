@@ -1,0 +1,59 @@
+From ebc7d82c0497aaa45b7665f54c34a4601e8089e1 Mon Sep 17 00:00:00 2001
+From: Oleg Pykhalov <go.wigust@gmail.com>
+Date: Sat, 28 Sep 2019 21:21:47 +0300
+Subject: [PATCH] Fix magit-copy-buffer-revision
+
+---
+ lisp/magit-extras.el | 36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
+
+diff --git a/lisp/magit-extras.el b/lisp/magit-extras.el
+index 7a1bb6e0..c5f8782e 100644
+--- a/lisp/magit-extras.el
++++ b/lisp/magit-extras.el
+@@ -624,27 +624,21 @@ above."
+   (interactive)
+   (if (use-region-p)
+       (copy-region-as-kill nil nil 'region)
+-    (when-let ((rev (or magit-buffer-revision
+-                        (cl-case major-mode
+-                          ((magit-cherry-mode
+-                            magit-log-select-mode
+-                            magit-reflog-mode
+-                            magit-refs-mode
+-                            magit-revision-mode
+-                            magit-stash-mode
+-                            magit-stashes-mode)
+-                           (car magit-refresh-args))
+-                          (magit-diff-mode
+-                           (let ((r (car magit-refresh-args)))
+-                             (if (string-match "\\.\\.\\.?\\(.+\\)" r)
+-                                 (match-string 1 r)
+-                               r)))
+-                          (magit-log-mode)
+-                           (let ((r (caar magit-refresh-args)))
+-                             (if (string-match "\\.\\.\\.?\\(.+\\)" r)
+-                                 (match-string 1 r)
+-                               r)))
+-                          (magit-status-mode "HEAD")))))
++    (when-let ((rev (cl-case major-mode
++                      ((magit-cherry-mode
++                        magit-log-select-mode
++                        magit-reflog-mode
++                        magit-refs-mode
++                        magit-revision-mode
++                        magit-stash-mode
++                        magit-stashes-mode)
++                       (car magit-refresh-args))
++                      ((magit-diff-mode magit-log-mode)
++                       (let ((r (caar magit-refresh-args)))
++                         (if (string-match "\\.\\.\\.?\\(.+\\)" r)
++                             (match-string 1 r)
++                           r)))
++                      (magit-status-mode "HEAD"))))
+       (when (magit-commit-p rev)
+         (setq rev (magit-rev-parse rev))
+         (push (list rev default-directory) magit-revision-stack)
+-- 
+2.23.0
+
