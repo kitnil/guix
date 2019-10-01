@@ -14047,6 +14047,31 @@ the current upstream.")
 on drag distance.")
       (license license:gpl3+))))
 
+(define-public emacs-smooth-scrolling
+  (let ((commit "2462c13640aa4c75ab3ddad443fedc29acf68f84"))
+    (package
+      (name "emacs-smooth-scrolling")
+      (version (git-version "2.0.0" "1" commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/aspiers/smooth-scrolling.git")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1h15gjq781i6fsz32qlh51knawdr8hcqvshsz6cszp752cibdcdg"))))
+      (build-system emacs-build-system)
+      (home-page "https://github.com/aspiers/smooth-scrolling/")
+      (synopsis "Emacs smooth scrolling package")
+      (description "This package offers a minor mode which make emacs scroll
+smoothly.  It keeps the point away from the top and bottom of the current
+buffer's window in order to keep lines of context around the point visible as
+much as possible, whilst minimising the frequency of sudden scroll jumps which
+are visually confusing.")
+      (license license:gpl3+))))
+
 (define-public emacs-company-restclient
   (package
     (name "emacs-company-restclient")
