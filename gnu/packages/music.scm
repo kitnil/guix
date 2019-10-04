@@ -22,6 +22,7 @@
 ;;; Copyright © 2019 Gabriel Hondet <gabrielhondet@gmail.com>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2019 Jakob L. Kreuze <zerodaysfordays@sdf.lonestar.org>
+;;; Copyright © 2019 raingloom <raingloom@protonmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -2007,14 +2008,14 @@ browser.")
 (define-public drumstick
   (package
     (name "drumstick")
-    (version "1.1.2")
+    (version "1.1.3")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://sourceforge/drumstick/"
                                   version "/drumstick-" version ".tar.bz2"))
               (sha256
                (base32
-                "0kljqyqj7s1i2z52i24x7ail1bywn6dcxxfbad5c59drm8wv94bp"))))
+                "1n9wvg79yvkygrkc8xd8pgrd3d7hqmr7gh24dccf0px23lla9b3m"))))
     (build-system cmake-build-system)
     (arguments
      `(#:tests? #f                      ; no test target
@@ -2049,6 +2050,52 @@ files: .MID/.KAR), Cakewalk (.WRK), and Overture (.OVE) file formats.  A
 multiplatform realtime MIDI I/O library is also provided with various output
 backends, including ALSA, OSS, Network and FluidSynth.")
     (license license:gpl2+)))
+
+(define-public vmpk
+  (package
+    (name "vmpk")
+    (version "0.7.2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "mirror://sourceforge/vmpk/vmpk/"
+                                  version "/vmpk-" version ".tar.bz2"))
+              (sha256
+               (base32
+                "1i3hnvdgz46n4k5v0q4jhgh7nkh0s390ix4nqr69z0q3026yp0p6"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:tests? #f  ; no test target
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'configure 'fix-docbook
+           (lambda* (#:key inputs #:allow-other-keys)
+             (substitute* "cmake_admin/CreateManpages.cmake"
+               (("http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl")
+                (string-append (assoc-ref inputs "docbook-xsl")
+                               "/xml/xsl/docbook-xsl-"
+                               ,(package-version docbook-xsl)
+                               "/manpages/docbook.xsl")))
+             #t)))))
+    (inputs
+     `(("drumstick" ,drumstick)
+       ("qtbase" ,qtbase)
+       ("qtsvg" ,qtsvg)
+       ("qttools" ,qttools)
+       ("qtx11extras" ,qtx11extras)))
+    (native-inputs
+     `(("libxslt" ,libxslt) ;for xsltproc
+       ("docbook-xsl" ,docbook-xsl)
+       ("pkg-config" ,pkg-config)))
+    (home-page "http://vmpk.sourceforge.net")
+    (synopsis "Virtual MIDI piano keyboard")
+    (description
+     "Virtual MIDI Piano Keyboard is a MIDI events generator and receiver.  It
+doesn't produce any sound by itself, but can be used to drive a MIDI
+synthesizer (either hardware or software, internal or external).  You can use
+the computer's keyboard to play MIDI notes, and also the mouse.  You can use
+the Virtual MIDI Piano Keyboard to display the played MIDI notes from another
+instrument or MIDI file player.")
+    (license license:gpl3+)))
 
 (define-public zynaddsubfx
   (package
@@ -2099,7 +2146,7 @@ capabilities, custom envelopes, effects, etc.")
 (define-public yoshimi
   (package
     (name "yoshimi")
-    (version "1.5.10.2")
+    (version "1.6.0.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://sourceforge/yoshimi/"
@@ -2107,10 +2154,10 @@ capabilities, custom envelopes, effects, etc.")
                                   "/yoshimi-" version ".tar.bz2"))
               (sha256
                (base32
-                "1rr99qkq80s8l2iv3x4ccxan07m15dvmd5s9b10386bfjbwbya01"))))
+                "140f2k4akj39pny8c7i794q125415gyvmy4rday0il5ncp3glik4"))))
     (build-system cmake-build-system)
     (arguments
-     `(#:tests? #f ; there are no tests
+     `(#:tests? #f                      ; there are no tests
        #:configure-flags
        (list (string-append "-DCMAKE_INSTALL_DATAROOTDIR="
                             (assoc-ref %outputs "out") "/share"))
@@ -2766,14 +2813,13 @@ Songs can be searched by artist, name or even by a part of the song text.")
 (define-public beets
   (package
     (name "beets")
-    (version "1.4.7")
+    (version "1.4.9")
     (source (origin
               (method url-fetch)
               (uri (pypi-uri "beets" version))
-              (patches (search-patches "beets-python-3.7-fix.patch"))
               (sha256
                (base32
-                "0w3gz69s9gf5ih69d4sddgh7ndj7658m621bp742zldvjakdncrs"))))
+                "0m40rjimvfgy1dv04p8f8d5dvi2855v4ix99a9xr900cmcn476yj"))))
     (build-system python-build-system)
     (arguments
      `(#:phases
@@ -2781,12 +2827,6 @@ Songs can be searched by artist, name or even by a part of the song text.")
          (add-after 'unpack 'set-HOME
            (lambda _
              (setenv "HOME" (string-append (getcwd) "/tmp"))
-             #t))
-         (add-after 'unpack 'make-python3.7-compatible
-           (lambda _
-             ;; See <https://github.com/beetbox/beets/issues/2978>.
-             (substitute* "beets/autotag/hooks.py"
-              (("re\\._pattern_type") "re.Pattern"))
              #t))
          (replace 'check
            (lambda _
@@ -2811,7 +2851,7 @@ Songs can be searched by artist, name or even by a part of the song text.")
        ("python-mutagen" ,python-mutagen)
        ("python-pyyaml" ,python-pyyaml)
        ("python-unidecode" ,python-unidecode)))
-    (home-page "http://beets.io")
+    (home-page "https://beets.io")
     (synopsis "Music organizer")
     (description "The purpose of beets is to get your music collection right
 once and for all.  It catalogs your collection, automatically improving its
@@ -4483,3 +4523,65 @@ discard bad quality ones.
 controller.")
     (home-page "https://github.com/charlesfleche/lpd8editor")
     (license license:expat)))
+
+(define-public fmit
+  (package
+    (name "fmit")
+    (version "1.2.13")
+    (source (origin
+	      (method git-fetch)
+	      (uri (git-reference
+		    (url "https://github.com/gillesdegottex/fmit/")
+		    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+	      (sha256
+               (base32
+                "1qyskam053pvlap1av80rgp12pzhr92rs88vqs6s0ia3ypnixcc6"))))
+    (build-system gnu-build-system)
+    (arguments
+     '(#:phases
+       (modify-phases %standard-phases
+	 (delete 'configure)
+	 (add-before 'build 'qmake
+	   (lambda _
+	     (let ((out (assoc-ref %outputs "out")))
+               (invoke "qmake"
+                       "fmit.pro"
+                       (string-append "PREFIX=" out)
+                       (string-append "PREFIXSHORTCUT=" out)
+                       "CONFIG+=acs_qt acs_alsa acs_jack acs_portaudio"))))
+         (add-after 'install 'wrap-executable
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (wrap-program (string-append out "/bin/fmit")
+                 `("QT_PLUGIN_PATH" ":" prefix
+                   ,(map (lambda (label)
+                           (string-append (assoc-ref inputs label)
+                                          "/lib/qt5/plugins"))
+                         '("qtbase" "qtmultimedia" "qtsvg")))
+                 `("QML2_IMPORT_PATH" ":" prefix
+                   ,(map (lambda (label)
+                           (string-append (assoc-ref inputs label)
+                                          "/lib/qt5/qml"))
+                         '("qtmultimedia"))))
+               #t))))))
+    (inputs
+     `(("alsa-lib" ,alsa-lib)
+       ("fftw" ,fftw)
+       ("jack" ,jack-1)
+       ("portaudio" ,portaudio)
+       ("qtbase" ,qtbase)
+       ("qtmultimedia" ,qtmultimedia)
+       ("qtsvg" ,qtsvg)))
+    (native-inputs
+     `(("gettext" ,gnu-gettext)
+       ("hicolor-icon-theme" ,hicolor-icon-theme)
+       ("itstool" ,itstool)
+       ("qttools" ,qttools)))
+    (synopsis "Musical instrument tuner")
+    (description "FMIT is a graphical utility for tuning musical instruments,
+with error and volume history, and advanced features.")
+    (home-page "https://gillesdegottex.github.io/fmit/")
+    ;; Most of the code is under GPL2+, but some abstract or helper classes
+    ;; are under LGPL2.1.
+    (license (list license:gpl2+ license:lgpl2.1))))

@@ -1024,7 +1024,7 @@ audio signals.")
 @enumerate
 @item Pulse-VCO, a dirac pulse oscillator with flat amplitude spectrum
 @item Saw-VCO, a sawtooth oscillator with 1/F amplitude spectrum
-@item Rec-VCO, a square / rectange oscillator
+@item Rec-VCO, a square / rectangle oscillator
 @end enumerate\n
 
 All oscillators are low-pass filtered to provide waveforms similar to the
@@ -3203,24 +3203,28 @@ with support for HD extensions.")
 (define-public bs1770gain
   (package
     (name "bs1770gain")
-    (version "0.5.2")
+    (version "0.6.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "mirror://sourceforge/bs1770gain/bs1770gain/"
                            version "/bs1770gain-" version ".tar.gz"))
        (sha256
-        (base32
-         "1p6yz5q7czyf9ard65sp4kawdlkg40cfscr3b24znymmhs3p7rbk"))
+        (base32 "0nnqixvw3x7i22nsr54n4bgm35z9nh3d9qj5s75cfd3ajjsjndyh"))
        (modules '((guix build utils)))
        (snippet
         '(begin
            ;; XXX
-           (substitute* "bs1770gain/bs1770gain.c"
-             (("\"N.*\"") "\"\""))
-           (substitute* "configure"
-             (("URL=.*$")
-              "https://manpages.debian.org/sid/bs1770gain/bs1770gain.1.en.html\n"))))))
+           (substitute* "libbg/bgx.c"
+             (("#define BS.* ") "#define BS ")
+             (("BS.*NO?.*N.*S.*E.*N.*SE?") "NO")
+             (("\"( #|N).*\"") "\"\""))
+           (substitute* (list "config.h"
+                              "configure.ac"
+                              "configure")
+             (("https?://bs1770gain[^/]*/")
+              "https://manpages.debian.org/sid/bs1770gain/bs1770gain.1.en.html"))
+           #t))))
     (build-system gnu-build-system)
     (inputs `(("ffmpeg" ,ffmpeg)
               ("sox" ,sox)))
@@ -3382,21 +3386,22 @@ on the ALSA software PCM plugin.")
 (define-public snd
   (package
     (name "snd")
-    (version "19.5")
+    (version "19.6")
     (source (origin
               (method url-fetch)
               (uri (string-append "ftp://ccrma-ftp.stanford.edu/pub/Lisp/"
                                   "snd-" version ".tar.gz"))
               (sha256
                (base32
-                "0sk6iyykwi2mm3f1g4r0iqbsrwk3zmyagp6jjqkh8njbq42cjr1y"))))
+                "0s2qv8sznvw6559bi39qj9p072azh9qcb2b86w6w8clz2azjaa76"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      `(#:tests? #f                      ; no tests
        #:out-of-source? #f              ; for the 'install-doc' phase
        #:configure-flags
        (let* ((out (assoc-ref %outputs "out"))
-              (docdir (string-append out "/share/doc/snd")))
+              (docdir (string-append out "/share/doc/"
+                                     ,name "-" ,version)))
          (list "--with-alsa" "--with-jack" "--with-gmp"
                (string-append "--with-doc-dir=" docdir)))
        #:phases
@@ -3409,7 +3414,7 @@ on the ALSA software PCM plugin.")
                (for-each
                 (lambda (f)
                   (install-file f doc))
-                (find-files "." "\\.html$|COPYING"))
+                (find-files "." "\\.html$"))
                (copy-recursively "pix" (string-append doc "/pix"))
                #t))))))
     (native-inputs
@@ -3700,7 +3705,7 @@ library.")
 (define-public faudio
   (package
     (name "faudio")
-    (version "19.08")
+    (version "19.09")
     (source
      (origin
        (method git-fetch)
@@ -3709,7 +3714,7 @@ library.")
              (commit version)))
        (file-name (string-append name "-" version "-checkout"))
        (sha256
-        (base32 "1v13kfhyr46241vb6a4dcb4gw5f149525sprwa9cj4rv6wlcqgm5"))))
+        (base32 "0fagik55jmy3qmb27nhg0zxash1ahfkxphx8m8gs0pimqqrdrd9d"))))
     (arguments
      '(#:tests? #f                      ; No tests.
        #:configure-flags '("-DFFMPEG=ON")))

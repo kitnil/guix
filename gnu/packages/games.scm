@@ -112,6 +112,7 @@
   #:use-module (gnu packages guile)
   #:use-module (gnu packages haskell)
   #:use-module (gnu packages haskell-crypto)
+  #:use-module (gnu packages haskell-xyz)
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
@@ -252,34 +253,26 @@ mouse and joystick control, and original music.")
 (define-public alex4
   (package
     (name "alex4")
-    (version "1.2-alpha")
+    (version "1.2.1")
     (source
      (origin
-       (method url-fetch)
-       (uri (string-append "https://github.com/carstene1ns/alex4/archive/"
-                           version ".tar.gz"))
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/carstene1ns/alex4.git")
+             (commit version)))
+       (file-name (git-file-name name version))
        (sha256
-        (base32 "0jj1g3v1a6lyfwp5g2ly0n9z65ryqck8jxvzr01kaqjj3lsfkrhg"))))
+        (base32 "098wy72mh4lsvq3gm0rhamjssf9l1hp6hhkpzrv7klpb97cwwc3h"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f ; no check target
+     `(#:tests? #f                      ; no check target
        #:make-flags
-       (list "-Csrc"
-             "CC=gcc"
+       (list "CC=gcc"
              "CFLAGS=-D_FILE_OFFSET_BITS=64"
-             (string-append "DATADIR=" (assoc-ref %outputs "out")
-                            "/share/" ,name)
              (string-append "PREFIX=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
-         (replace 'configure
-           (lambda _
-             (substitute* '("src/main.c"
-                            "src/shooter.c")
-               (("fcos") "fixcos")
-               (("fmul") "fixmul")
-               (("fsin") "fixsin"))
-             #t))
+         (delete 'configure)            ; no configure script
          (add-after 'install 'install-data
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((share (string-append (assoc-ref outputs "out")
@@ -2209,7 +2202,24 @@ also available.")
        (modify-phases %standard-phases
          (add-before
           'configure 'link-libm
-          (lambda _ (setenv "LIBS" "-lm"))))))
+          (lambda _ (setenv "LIBS" "-lm")))
+         (add-after 'install 'create-desktop-entry
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (apps (string-append out "/share/applications")))
+               (mkdir-p apps)
+               (with-output-to-file
+                 (string-append apps "/gnujump.desktop")
+                 (lambda _
+                   (format #t
+                           "[Desktop Entry]~@
+                           Name=GNUjump~@
+                           Comment=Jump up the tower to survive~@
+                           Exec=~a/bin/gnujump~@
+                           Terminal=false~@
+                           Type=Application~@
+                           Categories=Game;ArcadeGame~%"
+                           out)))))))))
     (inputs
      `(("glu" ,glu)
        ("mesa" ,mesa)
@@ -6108,7 +6118,7 @@ when packaged in Blorb container files or optionally from individual files.")
 (define-public libmanette
   (package
     (name "libmanette")
-    (version "0.2.2")
+    (version "0.2.3")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/libmanette/"
@@ -6116,7 +6126,7 @@ when packaged in Blorb container files or optionally from individual files.")
                                   "libmanette-" version ".tar.xz"))
               (sha256
                (base32
-                "1lpprk2qz1lsqf9xj6kj2ciyc1zmjhj5lwd584qkh7jgz2x9y6wb"))))
+                "1zxh7jn2zg7hivmal5zxam6fxvjsd1w6hlw0m2kysk76b8anbw60"))))
     (build-system meson-build-system)
     (native-inputs
      `(("glib" ,glib "bin")             ; for glib-compile-resources
@@ -7107,7 +7117,7 @@ simulator.")
 (define-public jumpnbump
   (package
     (name "jumpnbump")
-    (version "1.60")
+    (version "1.61")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -7116,7 +7126,7 @@ simulator.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0gwi58ck4magvdim8wmxdqnsi0fqdpvqia9kcc7q73nqf34jjz3v"))))
+                "12lwl5sl5n009nb83r8l4lakb9286csqdf1ynpmwwydy17giqsdp"))))
     (build-system gnu-build-system)
     (arguments
      `(#:make-flags

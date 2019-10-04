@@ -39,6 +39,8 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2019 Jonathan Frederickson <jonathan@terracrypt.net>
+;;; Copyright © 2019 Maxim Cournoyer <maxim.cournoyer@gmail.com>
+;;; Copyright © 2019 Martin Becze <mjbecze@riseup.net>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -65,6 +67,7 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages bison)
+  #:use-module (gnu packages boost)
   #:use-module (gnu packages build-tools)
   #:use-module (gnu packages calendar)
   #:use-module (gnu packages cdrom)
@@ -2537,24 +2540,40 @@ and objects.")
 (define-public libxklavier
   (package
     (name "libxklavier")
-    (version "5.3")
+    (version "5.4")
     (source (origin
-              (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
-                                  version "/" name "-" version ".tar.xz"))
+              ;; Note: There's no tarball at ftp.gnome.org for this version.
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://anongit.freedesktop.org/git/libxklavier")
+                    (commit (string-append "libxklavier-" version))))
               (sha256
                (base32
-                "016lpdv35z0qsw1cprdc2k5qzkdi5waj6qmr0a2q6ljn9g2kpv7b"))))
+                "1w1x5mrgly2ldiw3q2r6y620zgd89gk7n90ja46775lhaswxzv7a"))
+              (file-name (git-file-name name version))))
     (build-system gnu-build-system)
     (arguments
-     '(#:configure-flags
+     '(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'no-configure
+           (lambda* _
+            (setenv "NOCONFIGURE" "1")
+            #t)))
+       #:configure-flags
        (list (string-append "--with-xkb-base="
                             (assoc-ref %build-inputs "xkeyboard-config")
-                            "/share/X11/xkb"))))
+                            "/share/X11/xkb")
+             "--disable-xmodmap-support")))
     (native-inputs
      `(("glib:bin"              ,glib "bin") ; for glib-mkenums, etc.
        ("gobject-introspection" ,gobject-introspection)
-       ("pkg-config"            ,pkg-config)))
+       ("pkg-config"            ,pkg-config)
+       ("gtk-doc" ,gtk-doc)
+       ("intltool" ,intltool)
+       ("which" ,which)
+       ("autoconf" ,autoconf)
+       ("automake" ,automake)
+       ("libtool" ,libtool)))
     (propagated-inputs
      ;; Required by libxklavier.pc.
      `(("glib"    ,glib)
@@ -2613,7 +2632,7 @@ library.")
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/glib-networking/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "glib-networking-" version ".tar.xz"))
               (sha256
                (base32
                 "0s006gs9nsq6mg31spqha1jffzmp6qjh10y27h0fxf1iw1ah5ymx"))
@@ -2685,7 +2704,7 @@ libxml to ease remote use of the RESTful API.")
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/libsoup/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "libsoup-" version ".tar.xz"))
               (sha256
                (base32
                 "0amfw1yvy1kjrg41rfh2vvrw5gkwnyckqbw1fab50hm6xc1acbmx"))))
@@ -2791,16 +2810,16 @@ and the GLib main loop, to integrate well with GNOME applications.")
 (define-public libsecret
   (package
     (name "libsecret")
-    (version "0.18.8")
+    (version "0.19.1")
     (source (origin
               (method url-fetch)
               (uri (string-append
                     "mirror://gnome/sources/libsecret/"
                     (version-major+minor version) "/"
-                    name "-" version ".tar.xz"))
+                    "libsecret-" version ".tar.xz"))
               (sha256
                (base32
-                "058x64689k55wxfkdp4svhnwvv8jmqm7z5mrynybl38f4sfqiyiv"))))
+                "0fhflcsr70b1pps2pcvqcbdhip2ny5am9nbm634f4sj5g40y30w5"))))
     (build-system gnu-build-system)
     (outputs '("out" "doc"))
     (arguments
@@ -3105,15 +3124,15 @@ permission from user.")
 (define-public geocode-glib
   (package
     (name "geocode-glib")
-    (version "3.26.0")
+    (version "3.26.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/geocode-glib/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "geocode-glib-" version ".tar.xz"))
               (sha256
                (base32
-                "1vmydxs5xizcmaxpkfrq75xpj6pqrpdjizxyb30m00h54yqqch7a"))))
+                "076ydfpyc4n5c9dbqmf26i4pilfi5jpw6cjcgrbgrjbndavnmajv"))))
     (build-system meson-build-system)
     (arguments
      `(#:phases
@@ -3344,7 +3363,7 @@ playlists in a variety of formats.")
 (define-public aisleriot
   (package
     (name "aisleriot")
-    (version "3.22.8")
+    (version "3.22.9")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/aisleriot/"
@@ -3352,7 +3371,7 @@ playlists in a variety of formats.")
                                   "aisleriot-" version ".tar.xz"))
               (sha256
                (base32
-                "15pm39679ymxki07sb5nvhycz4z53zwbvascyp5wm4864bn98815"))))
+                "0yzdh9cw5cjjgvfh75bihl968czlgfmpmn1z0fdk88sgvpjgzwji"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      '(#:configure-flags
@@ -3408,16 +3427,15 @@ throughout GNOME for API documentation).")
 (define-public cogl
   (package
     (name "cogl")
-    (version "1.22.2")
+    (version "1.22.4")
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "mirror://gnome/sources/" name "/"
+       (uri (string-append "mirror://gnome/sources/cogl/"
                            (version-major+minor version) "/"
-                           name "-" version ".tar.xz"))
+                           "cogl-" version ".tar.xz"))
        (sha256
-        (base32
-         "03f0ha3qk7ca0nnkkcr1garrm1n1vvfqhkz9lwjm592fnv6ii9rr"))))
+        (base32 "1q0drs82a8f6glg1v29bb6g2nf15fw0rvdx3d0rgcgfarfaby5sj"))))
     ;; NOTE: mutter exports a bundled fork of cogl, so when making changes to
     ;; cogl, corresponding changes may be appropriate in mutter as well.
     (build-system gnu-build-system)
@@ -3663,15 +3681,15 @@ queries upon that data.")
 (define-public libgnome-games-support
   (package
     (name "libgnome-games-support")
-    (version "1.4.1")
+    (version "1.4.4")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/libgnome-games-support/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "libgnome-games-support-" version ".tar.xz"))
               (sha256
                (base32
-                "1j7lfcnc29lgn8ppn13wkn9w2y1n3lsapagwp91zh3bf0h2h4hv1"))))
+                "1zkbmnrn161p74qg6jhsn9f66yjjzxfm13pl1klv9av8k1bax9pq"))))
     (build-system gnu-build-system)
     (arguments
      '(#:phases
@@ -4166,9 +4184,9 @@ part of udev-extras, then udev, then systemd.  It's now a project on its own.")
     (version "1.36.2")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/gvfs/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "gvfs-" version ".tar.xz"))
               (sha256
                (base32
                 "1xq105596sk9yram5a143b369wpaiiwc9gz86n0j1kfr7nipkqn4"))))
@@ -4312,15 +4330,15 @@ work and the interface is well tested.")
 (define-public eolie
   (package
     (name "eolie")
-    (version "0.9.62")
+    (version "0.9.63")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://gitlab.gnome.org/World/eolie/"
-                                  "uploads/bb4aad19272cc636bd17f2f6602127fe/"
+                                  "uploads/d42b466752729a0d3fa828a721e25043/"
                                   "eolie-" version ".tar.xz"))
               (sha256
                (base32
-                "06v76hg87fnhw45dil5vvl20myvaa38n1jqsl0lmkkq6af4mk8wx"))))
+                "11pp8g0w22h1q0bbj9517l5838gcymvvp8fp9kh6h2dmgir2ssih"))))
     (build-system meson-build-system)
     (arguments
      `(#:glib-or-gtk? #t
@@ -4367,7 +4385,7 @@ work and the interface is well tested.")
        ("libsecret" ,libsecret)
        ("gtkspell3" ,gtkspell3)
        ("gsettings-desktop-schemas" ,gsettings-desktop-schemas)
-       ("webkitgtk" ,webkitgtk-2.24)))
+       ("webkitgtk" ,webkitgtk-2.26)))
     (home-page "https://wiki.gnome.org/Apps/Eolie")
     (synopsis "Web browser for GNOME")
     (description
@@ -4426,7 +4444,7 @@ a secret password store, an adblocker, and a modern UI.")
        ("libxslt" ,libxslt)
        ("nettle" ,nettle) ; for hogweed
        ("sqlite" ,sqlite)
-       ("webkitgtk" ,webkitgtk-2.24)))
+       ("webkitgtk" ,webkitgtk-2.26)))
     (home-page "https://wiki.gnome.org/Apps/Web")
     (synopsis "GNOME web browser")
     (description
@@ -4585,15 +4603,15 @@ wraps things up in a developer-friendly way.")
 (define-public libgee
   (package
     (name "libgee")
-    (version "0.20.1")
+    (version "0.20.2")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/libgee/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "libgee-" version ".tar.xz"))
               (sha256
                (base32
-                "0c26x8gi3ivmhlbqcmiag4jwrkvcy28ld24j55nqr3jikb904a5v"))))
+                "0g1mhl7nidg82v4cikkk8dakzc18hg7wv0dsf2pbyijzfm5mq0wy"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
@@ -5893,15 +5911,15 @@ providing graphical log-ins and managing local and remote displays.")
 (define-public libgtop
   (package
     (name "libgtop")
-    (version "2.38.0")
+    (version "2.40.0")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/libgtop/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "libgtop-" version ".tar.xz"))
               (sha256
                (base32
-                "04mnxgzyb26wqk6qij4iw8cxwl82r8pcsna5dg8vz2j3pdi0wv2g"))))
+                "1m6jbqk8maa52gxrf223442fr5bvvxgb7ham6v039i3r1i62gwvq"))))
     (build-system gnu-build-system)
     (native-inputs
      `(("gobject-introspection" ,gobject-introspection)
@@ -6283,9 +6301,9 @@ easy, safe, and automatic.")
     (version "2.0.4")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/tracker/"
                                   (version-major+minor version) "/"
-                                  name "-" version ".tar.xz"))
+                                  "tracker-" version ".tar.xz"))
               (sha256
                (base32
                 "1mfc5lv820kr7ssi7hldn25gmshh65k19kh478qjsnb64sshsbyf"))))
@@ -7213,9 +7231,9 @@ compiled.")
     (source (origin
               (method url-fetch)
               (uri (string-append
-                    "mirror://gnome/sources/" name "/"
+                    "mirror://gnome/sources/gfbgraph/"
                     (version-major+minor version) "/"
-                    name "-" version ".tar.xz"))
+                    "gfbgraph-" version ".tar.xz"))
               (sha256
                (base32
                 "1dp0v8ia35fxs9yhnqpxj3ir5lh018jlbiwifjfn8ayy7h47j4fs"))))
@@ -7242,15 +7260,15 @@ GLib/GObject code.")
 (define-public libgnomekbd
   (package
     (name "libgnomekbd")
-    (version "3.26.0")
+    (version "3.26.1")
     (source (origin
               (method url-fetch)
-              (uri (string-append "mirror://gnome/sources/" name "/"
+              (uri (string-append "mirror://gnome/sources/libgnomekbd/"
                                   (version-major+minor version)  "/"
-                                  name "-" version ".tar.xz"))
+                                  "libgnomekbd-" version ".tar.xz"))
               (sha256
                (base32
-                "0xc8jrc44x2h24v28wv36k70k7bwxy6p2vsvxvvia1n3ay642fza"))))
+                "0y962ykn3rr9gylj0pwpww7bi20lmhvsw6qvxs5bisbn2mih5jpp"))))
     (build-system gnu-build-system)
     (native-inputs
      `(("pkg-config" ,pkg-config)
@@ -7976,7 +7994,7 @@ configurable file renaming. ")
 (define-public workrave
   (package
     (name "workrave")
-    (version "1.10.23")
+    (version "1.10.34")
     (source
      (origin
        (method git-fetch)
@@ -7987,20 +8005,20 @@ configurable file renaming. ")
                                          version)))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1qhlwfhwk5agv4904d6bsf83k9k89q7bms6agg967vsca4905vcw"))))
+        (base32 "0czwhr7nw523753ajcjjfwrf91mq8pmzr19gp0srqsvb1dsn1zcf"))))
     (build-system glib-or-gtk-build-system)
-    (propagated-inputs `(("glib" ,glib)
-                         ("gtk+" ,gtk+)
-                         ("gdk-pixbuf" ,gdk-pixbuf)
-                         ("gtkmm" ,gtkmm)
-                         ("glibmm" ,glibmm)
-                         ("libx11" ,libx11)
-                         ("libxtst" ,libxtst)
-                         ("dconf" ,dconf)
-                         ("libice" ,libice)))
-    (inputs `(("libsm" ,libsm)
-              ("python-cheetah" ,python2-cheetah)))
-    (native-inputs `(("glib" ,glib "bin")
+    (inputs `(("glib" ,glib)
+              ("gtk+" ,gtk+)
+              ("gdk-pixbuf" ,gdk-pixbuf)
+              ("gtkmm" ,gtkmm)
+              ("glibmm" ,glibmm)
+              ("libx11" ,libx11)
+              ("libxtst" ,libxtst)
+              ("dconf" ,dconf)
+              ("libice" ,libice)
+              ("libsm" ,libsm)
+              ("libxscrnsaver" ,libxscrnsaver)))
+    (native-inputs `(("boost" ,boost)
                      ("pkg-config" ,pkg-config)
                      ("gettext" ,gnu-gettext)
                      ("autoconf" ,autoconf)
@@ -8008,9 +8026,9 @@ configurable file renaming. ")
                      ("automake" ,automake)
                      ("libtool" ,libtool)
                      ("intltool" ,intltool)
-                     ("libxscrnsaver" ,libxscrnsaver)
                      ("gobject-introspection" ,gobject-introspection)
-                     ("python2" ,python-2)))
+                     ("python3" ,python-3)
+                     ("python-jinja2" ,python-jinja2)))
     (synopsis "Tool to help prevent repetitive strain injury (RSI)")
     (description
      "Workrave is a program that assists in the recovery and prevention of
@@ -8104,11 +8122,21 @@ generic enough to work for everyone.")
     (build-system cmake-build-system)
     (arguments
      `(#:configure-flags
-       (list "-DENABLE_PST_IMPORT=OFF"    ; libpst is not packaged
-             "-DENABLE_LIBCRYPTUI=OFF"))) ; libcryptui hasn't seen a release
-                                          ; in four years and cannot be built.
+       (list "-DENABLE_PST_IMPORT=OFF"  ; libpst is not packaged
+             "-DENABLE_LIBCRYPTUI=OFF") ; libcryptui hasn't seen a release
+                                        ; in four years and cannot be built
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'install 'wrap-program
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (wrap-program (string-append out "/bin/evolution")
+                 `("XDG_DATA_DIRS" ":" prefix (,(getenv "XDG_DATA_DIRS")))
+                 `("GSETTINGS_SCHEMA_DIR" =
+                   (,(string-append out "/share/glib-2.0/schemas")))))
+             #t)))))
     (native-inputs
-     `(("glib" ,glib "bin")               ; glib-mkenums
+     `(("glib" ,glib "bin")             ; glib-mkenums
        ("pkg-config" ,pkg-config)
        ("intltool" ,intltool)
        ("itstool" ,itstool)))
@@ -8116,6 +8144,7 @@ generic enough to work for everyone.")
      `(("enchant" ,enchant)
        ("evolution-data-server" ,evolution-data-server) ; must be the same version
        ("gcr" ,gcr)
+       ("gsettings-desktop-schemas" ,gsettings-desktop-schemas)
        ("gnome-autoar" ,gnome-autoar)
        ("gnome-desktop" ,gnome-desktop)
        ("gtkspell3" ,gtkspell3)
@@ -8142,7 +8171,7 @@ functionality.")
 (define-public gthumb
   (package
     (name "gthumb")
-    (version "3.8.0")
+    (version "3.8.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/gthumb/"
@@ -8150,7 +8179,7 @@ functionality.")
                                   "gthumb-" version ".tar.xz"))
               (sha256
                (base32
-                "1l2s1facq1r6yvqjqc34aqfzlvb3nhkhn79xisxbbdlgrrxdq52f"))))
+                "184zn79w4s9y1zy42ar31p3jsg8rmkxy8k6iry51nz8aizbcs7jb"))))
     (build-system meson-build-system)
     (arguments
      `(#:glib-or-gtk? #t
@@ -8242,7 +8271,7 @@ advanced image management tool")
 (define-public libhandy
   (package
     (name "libhandy")
-    (version "0.0.10")
+    (version "0.0.11")
     (source
      (origin
        (method git-fetch)
@@ -8251,7 +8280,7 @@ advanced image management tool")
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1702hbdqhfpgw0c4vj2ag08vgl83byiryrbngbq11b9azmj3jhzs"))))
+        (base32 "0622zp5wrvn5bvgardijxd11y76g1i54fs32y03dw9nrar7i6vb0"))))
     (build-system meson-build-system)
     (arguments
      `(#:configure-flags
@@ -8259,12 +8288,6 @@ advanced image management tool")
          "-Dgtk_doc=true")
        #:phases
        (modify-phases %standard-phases
-         (add-after 'unpack 'disable-broken-test
-           (lambda _
-             ;; This test fails for unknown reasons
-             (substitute* "tests/meson.build"
-               (("'test-dialog',") ""))
-             #t))
          (add-before 'check 'pre-check
            (lambda _
              ;; Tests require a running X server.
@@ -8280,7 +8303,10 @@ advanced image management tool")
        ("gtk-doc" ,gtk-doc)
        ("pkg-config" ,pkg-config)
        ("gettext" ,gettext-minimal)
-       ("xorg-server" ,xorg-server)))
+       ("xorg-server" ,xorg-server)
+
+       ;; Test suite dependencies.
+       ("hicolor-icon-theme" ,hicolor-icon-theme)))
     (home-page "https://source.puri.sm/Librem5/libhandy")
     (synopsis "Library full of GTK+ widgets for mobile phones")
     (description "The aim of the handy library is to help with developing user

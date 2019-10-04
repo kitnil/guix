@@ -1,7 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2014, 2015 Ludovic Courtès <ludo@gnu.org>
 ;;; Copyright © 2016, 2017, 2018, 2019 Efraim Flashner <efraim@flashner.co.il>
-;;; Copyright © 2018 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2018, 2019 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2018 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
@@ -147,7 +147,7 @@ between two other data points.")
 (define-public gama
   (package
     (name "gama")
-    (version "2.06")
+    (version "2.07")
     (source
       (origin
         (method url-fetch)
@@ -155,7 +155,7 @@ between two other data points.")
                             version ".tar.gz"))
         (sha256
          (base32
-          "06xp3kj099b6m2fsmgcbzgj7xk4j0drsps52m4fr8vc6fglsh44p"))))
+          "0nmc6mkd55nryfffq5k9c09dhkbq6bfs06af8ammhbh5jzdn3s36"))))
     (build-system gnu-build-system)
     (arguments '(#:parallel-tests? #f)) ; race condition
     (native-inputs
@@ -175,7 +175,7 @@ coordinates as well as partial support for adjustments in global coordinate syst
 (define-public gpxsee
   (package
     (name "gpxsee")
-    (version "7.8")
+    (version "7.12")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -184,7 +184,7 @@ coordinates as well as partial support for adjustments in global coordinate syst
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1ymqz4wrl9ghkyyqi2vrnlyvz3fc84s3p8a1dkiqlvyvj360ck9j"))))
+                "0c3axs3mm6xzabwbvy9vgq1sryjpi4h91nwzy9iyv9zjxz7phgzc"))))
     (build-system gnu-build-system)
     (arguments
      '(#:phases

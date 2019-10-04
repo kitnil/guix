@@ -401,7 +401,10 @@ manage system or application containers.")
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
-       (list "--with-polkit"
+       (list "--with-qemu"
+             "--with-qemu-user=nobody"
+             "--with-qemu-group=kvm"
+             "--with-polkit"
              (string-append "--docdir=" (assoc-ref %outputs "out") "/share/doc/"
                             ,name "-" ,version)
              "--sysconfdir=/etc"
@@ -431,23 +434,13 @@ manage system or application containers.")
              (apply invoke "make" "install"
                     "sysconfdir=/tmp/etc"
                     "localstatedir=/tmp/var"
-                    make-flags)))
-         (add-after 'install 'wrap-libvirtd
-           (lambda* (#:key inputs outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out")))
-               (wrap-program (string-append out "/sbin/libvirtd")
-                 `("PATH" = (,(string-append (assoc-ref inputs "iproute")
-                                             "/sbin")
-                             ,(string-append (assoc-ref inputs "qemu")
-                                             "/bin"))))
-               #t))))))
+                    make-flags))))))
     (inputs
      `(("libxml2" ,libxml2)
        ("eudev" ,eudev)
        ("libpciaccess" ,libpciaccess)
        ("gnutls" ,gnutls)
        ("dbus" ,dbus)
-       ("qemu" ,qemu)
        ("libpcap" ,libpcap)
        ("libnl" ,libnl)
        ("libuuid" ,util-linux)
@@ -946,7 +939,7 @@ Open Container Initiative (OCI) image layout and its tagged images.")
 (define-public skopeo
   (package
     (name "skopeo")
-    (version "0.1.28")
+    (version "0.1.39")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -955,7 +948,7 @@ Open Container Initiative (OCI) image layout and its tagged images.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "068nwrr3nr27alravcq1sxyhdd5jjr24213vdgn1dqva3885gbi0"))))
+                "1jkxmvh079pd9j4aa39ilmclwafnjs0yqdiigwh8cj7yf97x4vsi"))))
     (build-system go-build-system)
     (native-inputs
      `(("pkg-config" ,pkg-config)))
@@ -1031,7 +1024,7 @@ virtual machines.")
 (define-public bubblewrap
   (package
     (name "bubblewrap")
-    (version "0.3.1")
+    (version "0.3.3")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/projectatomic/bubblewrap/"
@@ -1039,7 +1032,7 @@ virtual machines.")
                                   version ".tar.xz"))
               (sha256
                (base32
-                "1y2bdlxnlr84xcbf31lzirc292c5ak9bd2wvcvh4ppsliih6pjny"))))
+                "1zsd6rxryg97dkkhibr0fvq16x3s75qj84rvhdv8p42ag58mz966"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
@@ -1059,6 +1052,9 @@ virtual machines.")
                  ;; Some tests try to access /usr, but that doesn't exist.
                  ;; Give them /gnu instead.
                  (("/usr") "/gnu")
+                 (("--ro-bind /bin /bin") "--ro-bind /gnu /bin")
+                 (("--ro-bind /sbin /sbin") "--ro-bind /gnu /sbin")
+                 (("--ro-bind /lib /lib") "--ro-bind /gnu /lib")
                  (("  */bin/bash") (which "bash"))
                  (("/bin/sh") (which "sh"))
                  (("findmnt") (which "findmnt"))))

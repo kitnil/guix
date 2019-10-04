@@ -77,9 +77,9 @@
   #:use-module (gnu packages groff)
   #:use-module (gnu packages guile)
   #:use-module (gnu packages guile-xyz)
-  #:use-module (gnu packages haskell)
   #:use-module (gnu packages haskell-check)
   #:use-module (gnu packages haskell-web)
+  #:use-module (gnu packages haskell-xyz)
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
   #:use-module (gnu packages java)
@@ -1767,8 +1767,8 @@ well as many of the command line options.")
          (add-after 'unpack 'keep-references-to-bwa
            (lambda* (#:key inputs #:allow-other-keys)
              (substitute* "bwameth.py"
-               (("bwa mem")
-                (string-append (which "bwa") " mem"))
+               (("bwa (mem|index)" _ command)
+                (string-append (which "bwa") " " command))
                ;; There's an ill-advised check for "samtools" on PATH.
                (("^checkX.*") ""))
              #t)))))
@@ -2353,16 +2353,16 @@ other types of unwanted sequence from high-throughput sequencing reads.")
 (define-public libbigwig
   (package
     (name "libbigwig")
-    (version "0.4.2")
+    (version "0.4.4")
     (source (origin
               (method git-fetch)
               (uri (git-reference
                     (url "https://github.com/dpryan79/libBigWig.git")
                     (commit version)))
-              (file-name (string-append name "-" version "-checkout"))
+              (file-name (git-file-name name version))
               (sha256
                (base32
-                "0h2smg24v5srdcqzrmz2g23cmlp4va465mgx8r2z571sfz8pv454"))))
+                "09693dmf1scdac5pyq6qyn8b4mcipvnmc370k9a5z41z81m3dcsj"))))
     (build-system gnu-build-system)
     (arguments
      `(#:test-target "test"
@@ -7351,13 +7351,13 @@ checks on R packages that are to be submitted to the Bioconductor repository.")
 (define-public r-s4vectors
   (package
     (name "r-s4vectors")
-    (version "0.22.0")
+    (version "0.22.1")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "S4Vectors" version))
               (sha256
                (base32
-                "1wkqmpy0d0fab9bjfc7i5wh2zng75pg9rn9c1z1lkki7fpwaw2jb"))))
+                "0cpxqb18wd3pjd7bi8lry13sm5ffqahcvvxpk5pwm5xcj30cdlm9"))))
     (properties
      `((upstream-name . "S4Vectors")))
     (build-system r-build-system)
@@ -7378,13 +7378,13 @@ S4Vectors package itself.")
 (define-public r-iranges
   (package
     (name "r-iranges")
-    (version "2.18.1")
+    (version "2.18.3")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "IRanges" version))
               (sha256
                (base32
-                "1d64sh43pfc9vj2l7y7x6sb44l67wlnn3dzygp7ws0smn06mardq"))))
+                "05rw2b2bwns443n7d6lf97zdv1jbqdii2nprhs6x852w73m2a2g3"))))
     (properties
      `((upstream-name . "IRanges")))
     (build-system r-build-system)
@@ -7458,13 +7458,13 @@ names in their natural, rather than lexicographic, order.")
 (define-public r-edger
   (package
     (name "r-edger")
-    (version "3.26.7")
+    (version "3.26.8")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "edgeR" version))
               (sha256
                (base32
-                "1xbhb8aa1ygm5crkp1bmqs2x1601ppa2kgc2xlf2zh8jj8zqapg8"))))
+                "1wwimzviy2vklp80faz7sbbp74qcw2csbmlfgvzj7b785vwarpwg"))))
     (properties `((upstream-name . "edgeR")))
     (build-system r-build-system)
     (propagated-inputs
@@ -7580,13 +7580,13 @@ different technologies, including microarrays, RNA-seq, and quantitative PCR.")
 (define-public r-genomicranges
   (package
     (name "r-genomicranges")
-    (version "1.36.0")
+    (version "1.36.1")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "GenomicRanges" version))
               (sha256
                (base32
-                "1285fr8qjd7d0ixpv7d5imi0n6wzc4k6yia1rkmig71qd2gg556k"))))
+                "1yid84gn0052v52h84685lvk854grl1wl65psmlmxx9yyykgc0jn"))))
     (properties
      `((upstream-name . "GenomicRanges")))
     (build-system r-build-system)
@@ -7631,13 +7631,13 @@ on Bioconductor or which replace R functions.")
 (define-public r-annotationdbi
   (package
     (name "r-annotationdbi")
-    (version "1.46.0")
+    (version "1.46.1")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "AnnotationDbi" version))
               (sha256
                (base32
-                "0lfq5668a6sq4kqhxx78hl3jcaqdsaaliiybl9xyya2scdk8c29c"))))
+                "13nanz4nzy0mcda8ljz2g8d81hpqfz6jky7ydz5hpk0g2264b9ga"))))
     (properties
      `((upstream-name . "AnnotationDbi")))
     (build-system r-build-system)
@@ -7658,13 +7658,13 @@ annotation data packages using SQLite data storage.")
 (define-public r-biomart
   (package
     (name "r-biomart")
-    (version "2.40.3")
+    (version "2.40.4")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "biomaRt" version))
               (sha256
                (base32
-                "022m1r44s00c5k9bmv0lr22lcn662nhc91aazvv0yyysxjamyf60"))))
+                "0dj51qkxm7bh24b3bs1di7lic6zgi7g5gf9iqkqhrwkbm7sqvn0v"))))
     (properties
      `((upstream-name . "biomaRt")))
     (build-system r-build-system)
@@ -7742,13 +7742,13 @@ biological sequences or sets of sequences.")
 (define-public r-rsamtools
   (package
     (name "r-rsamtools")
-    (version "2.0.0")
+    (version "2.0.1")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "Rsamtools" version))
               (sha256
                (base32
-                "1nv5idyjk75mvl4np5sig0xa6qygm1ivj33k041ffyj19q8jf7ij"))))
+                "0wzp5vsmqs7h44r7lcw8fnz5x9bcdcfiqq8d3h62wwibyk2lg0w1"))))
     (properties
      `((upstream-name . "Rsamtools")))
     (build-system r-build-system)
@@ -7883,13 +7883,13 @@ alignments.")
 (define-public r-rtracklayer
   (package
     (name "r-rtracklayer")
-    (version "1.44.2")
+    (version "1.44.4")
     (source (origin
               (method url-fetch)
               (uri (bioconductor-uri "rtracklayer" version))
               (sha256
                (base32
-                "03b4rfsbzjjf5kxcsjv7kq8hrsgcvz9rfzcn2v7fx3nr818pbb8s"))))
+                "0dnifr58j2si2qbnvap2wslz3xgjv3h4l7a6v7nmmc57hq6kdbym"))))
     (build-system r-build-system)
     (arguments
      `(#:phases
@@ -8294,14 +8294,14 @@ secondary structure and comparative analysis in R.")
 (define-public r-rhtslib
   (package
     (name "r-rhtslib")
-    (version "1.16.1")
+    (version "1.16.2")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "Rhtslib" version))
        (sha256
         (base32
-         "178zbrm221rwhbjk7j2v9g5ra44k0xg7c5abhd810m3g7snma8k8"))))
+         "07qaqj2hypmrg40m3pci082bzar6wi10dh77r4a8x74dfppcwdzf"))))
     (properties `((upstream-name . "Rhtslib")))
     (build-system r-build-system)
     ;; Without this a temporary directory ends up in the Rhtslib.so binary,
@@ -8418,6 +8418,13 @@ library implementing most of the pipeline's features.")
     (arguments
      `(#:phases
        (modify-phases %standard-phases
+         (add-before 'configure 'find-RCAS
+           ;; The configure script can't find non-1.3.x versions of RCAS because
+           ;; its R expression ‘1.10.1 >= 1.3.4’ evaluates to false.
+           (lambda _
+             (substitute* "configure"
+               (("1\\.3\\.4") "0.0.0"))
+             #t))
          (add-after 'install 'wrap-executable
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
@@ -9176,14 +9183,14 @@ proteomics packages.")
 (define-public r-mzr
   (package
     (name "r-mzr")
-    (version "2.18.0")
+    (version "2.18.1")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "mzR" version))
        (sha256
         (base32
-         "0g5r6yk4gyz0xdwlmrcij4zv7apdgsgygr043095l33hard6nsl5"))
+         "1pr1pcrg3r3pccm5ag6l8ic6rpqbk9jnlb9mm7g4ak5jwrajbzjq"))
        (modules '((guix build utils)))
        (snippet
         '(begin
@@ -9204,7 +9211,8 @@ proteomics packages.")
 -lboost_iostreams -lboost_thread -lboost_filesystem -lboost_chrono\n")))
              #t)))))
     (inputs
-     `(;; XXX Boost 1.69 will not work here.
+     `(;; Our default boost package won't work here, unfortunately, even with
+       ;; mzR version 2.18.1.
        ("boost" ,boost-for-mysql) ; use this instead of the bundled boost sources
        ("zlib" ,zlib)))
     (propagated-inputs
@@ -9457,13 +9465,13 @@ and irregular enzymatic cleavages, mass measurement accuracy, etc.")
 (define-public r-seurat
   (package
     (name "r-seurat")
-    (version "3.0.2")
+    (version "3.1.0")
     (source (origin
               (method url-fetch)
               (uri (cran-uri "Seurat" version))
               (sha256
                (base32
-                "016fgcmjz3sjfxdvam5hd7mdxpmpnc7f6p5zqlh97m21dgn5vpqn"))))
+                "0icxndnnkkmmr9hhd01dv3w8pih7x9r0rlp3fq9pk3qajp9gmlyq"))))
     (properties `((upstream-name . "Seurat")))
     (build-system r-build-system)
     (propagated-inputs
@@ -9480,6 +9488,7 @@ and irregular enzymatic cleavages, mass measurement accuracy, etc.")
        ("r-igraph" ,r-igraph)
        ("r-irlba" ,r-irlba)
        ("r-kernsmooth" ,r-kernsmooth)
+       ("r-leiden" ,r-leiden)
        ("r-lmtest" ,r-lmtest)
        ("r-mass" ,r-mass)
        ("r-matrix" ,r-matrix)
@@ -9490,6 +9499,7 @@ and irregular enzymatic cleavages, mass measurement accuracy, etc.")
        ("r-rann" ,r-rann)
        ("r-rcolorbrewer" ,r-rcolorbrewer)
        ("r-rcpp" ,r-rcpp)
+       ("r-rcppannoy" ,r-rcppannoy)
        ("r-rcppeigen" ,r-rcppeigen)
        ("r-rcppprogress" ,r-rcppprogress)
        ("r-reticulate" ,r-reticulate)
@@ -9500,7 +9510,8 @@ and irregular enzymatic cleavages, mass measurement accuracy, etc.")
        ("r-scales" ,r-scales)
        ("r-sctransform" ,r-sctransform)
        ("r-sdmtools" ,r-sdmtools)
-       ("r-tsne" ,r-tsne)))
+       ("r-tsne" ,r-tsne)
+       ("r-uwot" ,r-uwot)))
     (home-page "http://www.satijalab.org/seurat")
     (synopsis "Seurat is an R toolkit for single cell genomics")
     (description
@@ -9636,14 +9647,14 @@ Shiny-based display methods for Bioconductor objects.")
 (define-public r-annotationhub
   (package
     (name "r-annotationhub")
-    (version "2.16.0")
+    (version "2.16.1")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "AnnotationHub" version))
        (sha256
         (base32
-         "1rpzl4x5mrwxrrf1jzm4zni6li6x34fjfyybsdvplb0ixa48zhn4"))))
+         "0c773cmhng907839f0bq161jky7362lxxny36ac55qxiz1giqi8j"))))
     (properties `((upstream-name . "AnnotationHub")))
     (build-system r-build-system)
     (propagated-inputs
@@ -10031,14 +10042,14 @@ interval to data view, mismatch pileup, and several splicing summaries.")
 (define-public r-gprofiler
   (package
     (name "r-gprofiler")
-    (version "0.6.7")
+    (version "0.6.8")
     (source
      (origin
        (method url-fetch)
        (uri (cran-uri "gProfileR" version))
        (sha256
         (base32
-         "12nwidbnqmnfy5dnqga26byslvdnkrpz2fi19qfcby6xx0wbndk7"))))
+         "05d6y6b7vkkzp2qhs1cwlvp02djij1b28dbwxnrms08f8qi35iaj"))))
     (properties `((upstream-name . "gProfileR")))
     (build-system r-build-system)
     (propagated-inputs
@@ -10187,22 +10198,24 @@ by Ernst and Kellis.")
 (define-public r-ldblock
   (package
     (name "r-ldblock")
-    (version "1.14.0")
+    (version "1.14.2")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "ldblock" version))
        (sha256
         (base32
-         "0lraxhq9ny3468534klrl64nx0dpaf9cbd5bir6m5qma8j7kfnyd"))))
+         "0xx04cghx6ads1ackwnw3z0gf72qv461nznzmcnkgmp7w5n9m2af"))))
     (build-system r-build-system)
     (propagated-inputs
      `(("r-biocgenerics" ,r-biocgenerics)
-       ("r-erma" ,r-erma)
+       ("r-ensdb-hsapiens-v75" ,r-ensdb-hsapiens-v75)
+       ("r-ensembldb" ,r-ensembldb)
        ("r-genomeinfodb" ,r-genomeinfodb)
        ("r-genomicfiles" ,r-genomicfiles)
        ("r-go-db" ,r-go-db)
        ("r-homo-sapiens" ,r-homo-sapiens)
+       ("r-httr" ,r-httr)
        ("r-matrix" ,r-matrix)
        ("r-rsamtools" ,r-rsamtools)
        ("r-snpstats" ,r-snpstats)
@@ -10273,14 +10286,14 @@ family of feature/genome hypotheses.")
 (define-public r-gviz
   (package
     (name "r-gviz")
-    (version "1.28.1")
+    (version "1.28.3")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "Gviz" version))
        (sha256
         (base32
-         "0chsb3ijwd8zh588s1vqgfassn2rzax5rhqrhl0ini6pi4ilchp2"))))
+         "0347r1ly0vzpilflzbyzsjdf4cday294lw3fxzx61clblrmws1ki"))))
     (properties `((upstream-name . "Gviz")))
     (build-system r-build-system)
     (propagated-inputs
@@ -10454,14 +10467,14 @@ block processing.")
 (define-public r-rhdf5lib
   (package
     (name "r-rhdf5lib")
-    (version "1.6.0")
+    (version "1.6.1")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "Rhdf5lib" version))
        (sha256
         (base32
-         "1lpmyxlwwcy92hyxqag321ssc5z6yw3a0ws9r058jwgzyjg7i2gm"))
+         "0niz9dh66fcwbvqpkpsdlz9d06kwi3kfh45dhk3qz9g9qqyiakr1"))
        (modules '((guix build utils)))
        (snippet
         '(begin
@@ -10650,14 +10663,14 @@ variable and significantly correlated genes.")
 (define-public r-delayedmatrixstats
   (package
     (name "r-delayedmatrixstats")
-    (version "1.6.0")
+    (version "1.6.1")
     (source
      (origin
        (method url-fetch)
        (uri (bioconductor-uri "DelayedMatrixStats" version))
        (sha256
         (base32
-         "0632ypndblrgzfk8k98rr8c6m2r0zwzf02pzvlrhcp9bj1pvqbrz"))))
+         "1riyzfsq4bd513hidkw3cfkx3jywk3x87j89q70v459xsdfdc95b"))))
     (properties
      `((upstream-name . "DelayedMatrixStats")))
     (build-system r-build-system)
@@ -13428,8 +13441,7 @@ bgzipped text file that contains a pair of genomic coordinates per line.")
          "0y5zyjksj1rdglj601xd2bbni5abhdh622y3ck76chyzxz9z4rx8"))))
     (build-system python-build-system)
     (propagated-inputs
-     `(("python-setuptools" ,python-setuptools)
-       ("python-six" ,python-six)))
+     `(("python-six" ,python-six)))
     (home-page "http://mattshirley.com")
     (synopsis "Random access to fasta subsequences")
     (description
@@ -14668,16 +14680,14 @@ proximity within a reference genome.")
          "08y3vz1vcx09whmbsn722lcs6jl9wyrh9i4p3k8j4cb1i32bij4a"))))
     (build-system python-build-system)
     (inputs
-     `(("python-setuptools" ,python-setuptools)
-       ("python-pandas" ,python-pandas)
+     `(("python-pandas" ,python-pandas)
        ("python-future" ,python-future)
        ("python-scipy" ,python-scipy)
        ("python-matplotlib" ,python-matplotlib)
        ("python-regex" ,python-regex)
        ("python-pysam" ,python-pysam)))
     (native-inputs
-     `(("python-setuptools" ,python-setuptools)
-       ("python-cython" ,python-cython)))
+     `(("python-cython" ,python-cython)))
     (home-page "https://github.com/CGATOxford/UMI-tools")
     (synopsis "Tools for analyzing unique modular identifiers")
     (description "This package provides tools for dealing with @dfn{Unique
@@ -15230,3 +15240,37 @@ indels (insertions and deletions), MNPs (multi-nucleotide polymorphisms), and
 complex events (composite insertion and substitution events) smaller than the
 length of a short-read sequencing alignment.")
       (license license:expat))))
+
+(define-public samblaster
+  (package
+    (name "samblaster")
+    (version "0.1.24")
+    (source (origin
+      (method git-fetch)
+      (uri (git-reference
+            (url "https://github.com/GregoryFaust/samblaster.git")
+            (commit (string-append "v." version))))
+      (file-name (git-file-name name version))
+      (sha256
+       (base32
+        "0iv2ddfw8363vb2x8gr3p8g88whb6mb9m0pf71i2cqsbv6jghap7"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f ; there are none
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure) ; There is no configure phase.
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (install-file "samblaster"
+                           (string-append (assoc-ref outputs "out") "/bin"))
+             #t)))))
+    (home-page "https://github.com/GregoryFaust/samblaster")
+    (synopsis "Mark duplicates in paired-end SAM files")
+    (description "Samblaster is a fast and flexible program for marking
+duplicates in read-id grouped paired-end SAM files.  It can also optionally
+output discordant read pairs and/or split read mappings to separate SAM files,
+and/or unmapped/clipped reads to a separate FASTQ file. When marking
+duplicates, samblaster will require approximately 20MB of memory per 1M read
+pairs.")
+    (license license:expat)))

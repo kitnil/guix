@@ -36,6 +36,7 @@
 ;;; Copyright © 2019 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;; Copyright © 2019 Stefan Stefanović <stefanx2ovic@gmail.com>
 ;;; Copyright © 2019 Pierre Langlois <pierre.langlois@gmx.com>
+;;; Copyright © 2019 Brice Waegeneire <brice@waegenei.re>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -115,6 +116,7 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg)
   #:use-module (gnu packages groff)
+  #:use-module (gnu packages rsync)
   #:use-module (gnu packages selinux)
   #:use-module (gnu packages swig)
   #:use-module (guix build-system cmake)
@@ -180,35 +182,41 @@ defconfig.  Return the appropriate make target if applicable, otherwise return
                               "deblob-check"))
           (sha256 deblob-check-hash))))
 
+(define deblob-scripts-5.3
+  (linux-libre-deblob-scripts
+   "5.3.1"
+   (base32 "15n09zq38d69y1wl28s3nasf3377qp2yil5b887zpqrm00dif7i4")
+   (base32 "1av9ykv714cnl0clls8rhwa8rwflz6ivg17gharj1x650qp6vnw3")))
+
 (define deblob-scripts-5.2
   (linux-libre-deblob-scripts
-   "5.2.3"
+   "5.2.17"
    (base32 "076fwxlm6jq6z4vg1xq3kr474zz7qk71r90sf9dnfia3rw2pb4fa")
    (base32 "0d3pp1bqchqc7vnxr1a56km5r0hzjiiipzz2xc3wgjwfi51k9kxc")))
 
 (define deblob-scripts-4.19
   (linux-libre-deblob-scripts
-   "4.19.61"
+   "4.19.75"
    (base32 "02zs405awaxydbapka4nz8h6lmnc0dahgczqsrs5s2bmzjyyqkcy")
    (base32 "1fyacg28aym6virxyn7wk99qil2fjbks3iwm7p3hxy51pccn34za")))
 
 (define deblob-scripts-4.14
   (linux-libre-deblob-scripts
-   "4.14.134"
+   "4.14.146"
    (base32 "091jk9jkn9jf39bxpc7395bhcb7p96nkg3a8047380ki06lnfxh6")
    (base32 "0x9nd3hnyrm753cbgdqmy92mbnyw86w64g4hvyibnkpq5n7s3z9n")))
 
 (define deblob-scripts-4.9
   (linux-libre-deblob-scripts
-   "4.9.186"
+   "4.9.194"
    (base32 "1wvldzlv7q2xdbadas87dh593nxr4a8p5n0f8zpm72lja6w18hmg")
-   (base32 "1gmjn5cwxydg6qb47wcmahwkv37npsjx4papynzkkdxyidmrccya")))
+   (base32 "0is8gn4qdd7h5l6lacvhqdch26lmrbgxfm8ab7fx8n85ha7y358w")))
 
 (define deblob-scripts-4.4
   (linux-libre-deblob-scripts
-   "4.4.186"
+   "4.4.194"
    (base32 "0x2j1i88am54ih2mk7gyl79g25l9zz4r08xhl482l3fvjj2irwbw")
-   (base32 "1x40lbiaizksy8z38ax7wpqr9ldgq7qvkxbb0ca98vd1axpklb10")))
+   (base32 "12ac4g3ky8yma8sylmxvvysqvd4hnaqjiwmxrxb6wlxggfd7zkbx")))
 
 (define* (computed-origin-method gexp-promise hash-algo hash
                                  #:optional (name "source")
@@ -350,42 +358,50 @@ corresponding UPSTREAM-SOURCE (an origin), using the given DEBLOB-SCRIPTS."
                         "linux-" version ".tar.xz"))
     (sha256 hash)))
 
-(define-public linux-libre-5.2-version "5.2.9")
+(define-public linux-libre-5.3-version "5.3.2")
+(define-public linux-libre-5.3-pristine-source
+  (let ((version linux-libre-5.3-version)
+        (hash (base32 "0szw21mpp94gp3zn2fgllbv6fdjjf20njgrcjay7vjmm7farq7rn")))
+   (make-linux-libre-source version
+                            (%upstream-linux-source version hash)
+                            deblob-scripts-5.3)))
+
+(define-public linux-libre-5.2-version "5.2.18")
 (define-public linux-libre-5.2-pristine-source
   (let ((version linux-libre-5.2-version)
-        (hash (base32 "1rnlnphw9rih4qhdld9ic5lnj5jh4vy5nqbj9lqwv9bc615jmw5n")))
+        (hash (base32 "0q6akmhcdj52lhvs5fjxrr25r0hyklh7115hg0zl0fcpdj30y2bd")))
    (make-linux-libre-source version
                             (%upstream-linux-source version hash)
                             deblob-scripts-5.2)))
 
-(define-public linux-libre-4.19-version "4.19.67")
+(define-public linux-libre-4.19-version "4.19.76")
 (define-public linux-libre-4.19-pristine-source
   (let ((version linux-libre-4.19-version)
-        (hash (base32 "00m5k0nfcvgff70686rbhn3w8c9wc3jxqvyddw40lylaqdh3s72s")))
+        (hash (base32 "0rhyjw5r3xdnj37dd6wrpihdqc3zn5ih6hcpa4x2cjvk0acx4kds")))
     (make-linux-libre-source version
                              (%upstream-linux-source version hash)
                              deblob-scripts-4.19)))
 
-(define-public linux-libre-4.14-version "4.14.139")
+(define-public linux-libre-4.14-version "4.14.146")
 (define-public linux-libre-4.14-pristine-source
   (let ((version linux-libre-4.14-version)
-        (hash (base32 "0hkhwcbxg6bry13w9kspx48b10274w6pgv200wh91fjd8jax8qlc")))
+        (hash (base32 "1x9343pvlxdgx0zbsn12mcfhf6r8d9p57h6l5cw7krm3gs44pid3")))
     (make-linux-libre-source version
                              (%upstream-linux-source version hash)
                              deblob-scripts-4.14)))
 
-(define-public linux-libre-4.9-version "4.9.189")
+(define-public linux-libre-4.9-version "4.9.194")
 (define-public linux-libre-4.9-pristine-source
   (let ((version linux-libre-4.9-version)
-        (hash (base32 "1cyhwnxkjd0qa5d48657yppjnzbi830q0p25jjv2dxs629k4bnck")))
+        (hash (base32 "1qy20vw5bhnsfbh95sdhjbk6y94js8m4ryd3m7xg2qg4hisvpx6m")))
     (make-linux-libre-source version
                              (%upstream-linux-source version hash)
                              deblob-scripts-4.9)))
 
-(define-public linux-libre-4.4-version "4.4.189")
+(define-public linux-libre-4.4-version "4.4.194")
 (define-public linux-libre-4.4-pristine-source
   (let ((version linux-libre-4.4-version)
-        (hash (base32 "0nc8v62gw89m3ykqg6nqf749fzm8y1n481ns8vny4gbinyikjhlp")))
+        (hash (base32 "0kvlp2v4nvkilaanhpgwf8dkyfj24msaw0m38rbc4y51y69yhqvz")))
     (make-linux-libre-source version
                              (%upstream-linux-source version hash)
                              deblob-scripts-4.4)))
@@ -417,6 +433,11 @@ corresponding UPSTREAM-SOURCE (an origin), using the given DEBLOB-SCRIPTS."
     (inherit source)
     (patches (append (origin-patches source)
                      patches))))
+
+(define-public linux-libre-5.3-source
+  (source-with-patches linux-libre-5.3-pristine-source
+                       (list %boot-logo-patch
+                             %linux-libre-arm-export-__sync_icache_dcache-patch)))
 
 (define-public linux-libre-5.2-source
   (source-with-patches linux-libre-5.2-pristine-source
@@ -462,6 +483,9 @@ corresponding UPSTREAM-SOURCE (an origin), using the given DEBLOB-SCRIPTS."
                      ,@(if (version>=? version "4.16")
                            `(("flex" ,flex)
                              ("bison" ,bison))
+                           '())
+                     ,@(if (version>=? version "5.3")
+                           `(("rsync" ,rsync))
                            '())))
     (arguments
      `(#:modules ((guix build gnu-build-system)
@@ -509,6 +533,10 @@ corresponding UPSTREAM-SOURCE (an origin), using the given DEBLOB-SCRIPTS."
     (synopsis "GNU Linux-Libre kernel headers")
     (description "Headers of the Linux-Libre kernel.")
     (license license:gpl2)))
+
+(define-public linux-libre-headers-5.3
+  (make-linux-libre-headers* linux-libre-5.3-version
+                             linux-libre-5.3-source))
 
 (define-public linux-libre-headers-5.2
   (make-linux-libre-headers* linux-libre-5.2-version
@@ -563,6 +591,13 @@ for ARCH and optionally VARIANT, or #f if there is no such configuration."
 (define %default-extra-linux-options
   `(;; Some very mild hardening.
     ("CONFIG_SECURITY_DMESG_RESTRICT" . #t)
+    ;; All kernels should have NAMESPACES options enabled
+    ("CONFIG_NAMESPACES" . #t)
+    ("CONFIG_UTS_NS" . #t)
+    ("CONFIG_IPC_NS" . #t)
+    ("CONFIG_USER_NS" . #t)
+    ("CONFIG_PID_NS" . #t)
+    ("CONFIG_NET_NS" . #t)
     ;; Modules required for initrd:
     ("CONFIG_NET_9P" . m)
     ("CONFIG_NET_9P_VIRTIO" . m)
@@ -669,6 +704,12 @@ for ARCH and optionally VARIANT, or #f if there is no such configuration."
              #t))
          (replace 'configure
            (lambda* (#:key inputs native-inputs target #:allow-other-keys)
+             ;; Unset CROSS_CPATH to make sure that cross-libc is not
+             ;; found. Otherwise, some of its header would conflict with the
+             ;; one from linux (stdint.h and linux/types.h)
+             ,@(if (%current-target-system)
+                   '((unsetenv "CROSS_CPATH"))
+                   '())
              ;; Avoid introducing timestamps
              (setenv "KCONFIG_NOTIMESTAMP" "1")
              (setenv "KBUILD_BUILD_TIMESTAMP" (getenv "SOURCE_DATE_EPOCH"))
@@ -742,16 +783,22 @@ It has been modified to remove all non-free binary blobs.")
 ;;; Generic kernel packages.
 ;;;
 
+(define-public linux-libre-5.3
+  (make-linux-libre* linux-libre-5.3-version
+                     linux-libre-5.3-source
+                     '("x86_64-linux" "i686-linux" "armhf-linux" "aarch64-linux")
+                     #:configuration-file kernel-config))
+
+(define-public linux-libre-version         linux-libre-5.3-version)
+(define-public linux-libre-pristine-source linux-libre-5.3-pristine-source)
+(define-public linux-libre-source          linux-libre-5.3-source)
+(define-public linux-libre                 linux-libre-5.3)
+
 (define-public linux-libre-5.2
   (make-linux-libre* linux-libre-5.2-version
                      linux-libre-5.2-source
                      '("x86_64-linux" "i686-linux" "armhf-linux" "aarch64-linux")
                      #:configuration-file kernel-config))
-
-(define-public linux-libre-version         linux-libre-5.2-version)
-(define-public linux-libre-pristine-source linux-libre-5.2-pristine-source)
-(define-public linux-libre-source          linux-libre-5.2-source)
-(define-public linux-libre                 linux-libre-5.2)
 
 (define-public linux-libre-4.19
   (make-linux-libre* linux-libre-4.19-version
@@ -892,7 +939,7 @@ and should be used with caution, especially on untested models.")
 (define-public vhba-module
   (package
     (name "vhba-module")
-    (version "20190410")
+    (version "20190831")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -900,7 +947,7 @@ and should be used with caution, especially on untested models.")
                     version ".tar.bz2"))
               (sha256
                (base32
-                "1513hq130raxp9z5grj54cwfjfxj05apipxg425j0zicii59a60c"))))
+                "1ybbk6l06n0y11n5wnfmvdz0baizmq55l458ywimghdyz0n7g0ws"))))
     (build-system linux-module-build-system)
     (arguments
      ;; TODO: No tests?
@@ -1700,7 +1747,7 @@ that the Ethernet protocol is much simpler than the IP protocol.")
 (define-public iproute
   (package
     (name "iproute2")
-    (version "5.2.0")
+    (version "5.3.0")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -1708,7 +1755,7 @@ that the Ethernet protocol is much simpler than the IP protocol.")
                     version ".tar.xz"))
               (sha256
                (base32
-                "1a2dywa2kam24951byv9pl32mb9z6klh7d4vp8fwfgrm4vn5vfd5"))))
+                "0gvv269wjn4279hxr5zzwsk2c5qgswr47za3hm1x4frsk52iw76b"))))
     (build-system gnu-build-system)
     (arguments
      `( ;; There is a test suite, but it wants network namespaces and sudo.
@@ -1733,7 +1780,8 @@ that the Ethernet protocol is much simpler than the IP protocol.")
                       #t)))))
     (inputs
      `(("db4" ,bdb)
-       ("iptables" ,iptables)))
+       ("iptables" ,iptables)
+       ("libmnl" ,libmnl)))
     (native-inputs
      `(("bison" ,bison)
        ("flex" ,flex)
@@ -1920,7 +1968,7 @@ transparently through a bridge.")
 (define-public libnl
   (package
     (name "libnl")
-    (version "3.4.0")
+    (version "3.5.0")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -1929,7 +1977,7 @@ transparently through a bridge.")
                     "/libnl-" version ".tar.gz"))
               (sha256
                (base32
-                "1gzm444rnsib64dddv0cwlpzy1q4bycjqhp1i5pxpikimqvpca5p"))))
+                "1yh5bqmkivd78x378x34gzb28lvykn6b9k3hgvvpdnj5jpn3689m"))))
     (build-system gnu-build-system)
     (native-inputs
      `(("bison" ,bison)
@@ -1944,7 +1992,7 @@ transparently through a bridge.")
                  (string-join (string-split version #\.) "_")
                  "/libnl-doc-" version ".tar.gz"))
            (sha256
-            (base32 "1m5cnzviv31gjnz6fz5rgyl6ah4dbp2akm49j9973sgwl36gs8jx"))))))
+            (base32 "19p5y8q3cm5wqvamqc4s5syxnnkvzxy3gw8ivxk6fv9ybn8jm35h"))))))
     (inputs
      `(("python-2" ,python-2)
        ("python-3" ,python-3)))
@@ -2113,7 +2161,7 @@ processes currently causing I/O.")
 (define-public fuse
   (package
     (name "fuse")
-    (version "2.9.8")
+    (version "2.9.9")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/libfuse/libfuse/releases/"
@@ -2121,7 +2169,7 @@ processes currently causing I/O.")
                                   "/fuse-" version ".tar.gz"))
               (sha256
                (base32
-                "1qxg1r1mgysfq6qakmvid2njph3lr00w0swvydsfl9ymilfzi12y"))
+                "1ddlq6kzxilccgbvxjfx80jx6kamgw4sv49phks2zhlcc1frvrnh"))
               (patches (search-patches "fuse-overlapping-headers.patch"))))
     (build-system gnu-build-system)
     (inputs `(("util-linux" ,util-linux)))
@@ -2313,15 +2361,15 @@ compressed, transparent to other programs, without decompressing them.")
 (define-public numactl
   (package
     (name "numactl")
-    (version "2.0.12")
+    (version "2.0.13")
     (source (origin
               (method url-fetch)
               (uri (string-append
                     "https://github.com/numactl/numactl/releases/download/v"
-                    version "/" name "-" version ".tar.gz"))
+                    version "/numactl-" version ".tar.gz"))
               (sha256
                (base32
-                "0ad7mpi3vacbfnx3aqxnvgsj64yp3mav9yxnaz8ancjv7wvdmfsm"))))
+                "16lcypvcmx1ydkpi2s82kqhg13kak7qhpbnj8hd9bdbyhr5ja7lr"))))
     (build-system gnu-build-system)
     (arguments
      '(;; There's a 'test' target, but it requires NUMA support in the kernel
@@ -2335,14 +2383,14 @@ compressed, transparent to other programs, without decompressing them.")
     (synopsis "Tools for non-uniform memory access (NUMA) machines")
     (description
      "NUMA stands for Non-Uniform Memory Access, in other words a system whose
-memory is not all in one place.  The numactl program allows you to run your
-application program on specific CPU's and memory nodes.  It does this by
-supplying a NUMA memory policy to the operating system before running your
+memory is not all in one place.  The @command{numactl} program allows you to
+run your application program on specific CPUs and memory nodes.  It does this
+by supplying a NUMA memory policy to the operating system before running your
 program.
 
-The package contains other commands, such as numademo, numastat and memhog.
-The numademo command provides a quick overview of NUMA performance on your
-system.")
+The package contains other commands, such as @command{numastat},
+@command{memhog}, and @command{numademo} which provides a quick overview of
+NUMA performance on your system.")
     (license (list license:gpl2                   ;programs
                    license:lgpl2.1))))            ;library
 
@@ -3295,14 +3343,14 @@ about ACPI devices.")
 (define-public acpid
   (package
     (name "acpid")
-    (version "2.0.31")
+    (version "2.0.32")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://sourceforge/acpid2/acpid-"
                                   version ".tar.xz"))
               (sha256
                (base32
-                "1hrc0xm6q12knbgzhq0i8g2rfrkwcvh1asd7k9rs3nc5xmlwd7gw"))))
+                "0zhmxnhnhg4v1viw82yjr22kram6k5k1ixznhayk8cnw7q5x7lpj"))))
     (build-system gnu-build-system)
     (home-page "https://sourceforge.net/projects/acpid2/")
     (synopsis "Daemon for delivering ACPI events to user-space programs")
@@ -3832,7 +3880,7 @@ and copy/paste text in the console and in xterm.")
 (define-public btrfs-progs
   (package
     (name "btrfs-progs")
-    (version "5.2.1")
+    (version "5.2.2")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/"
@@ -3840,7 +3888,7 @@ and copy/paste text in the console and in xterm.")
                                   "btrfs-progs-v" version ".tar.xz"))
               (sha256
                (base32
-                "0crjv3i20nyj2dagfw6q7byshscpn6j7wlqch3apkzzzk00lmb1n"))))
+                "1imivxjppi8zl27gn472pwpk8bg5dijkbyi340by31vhy7dj24w2"))))
     (build-system gnu-build-system)
     (outputs '("out"
                "static"))      ; static versions of the binaries in "out"
@@ -4449,18 +4497,18 @@ cpufreq sub-system is enabled or not.")
 (define-public haveged
   (package
     (name "haveged")
-    (version "1.9.4")
+    (version "1.9.6")
     (source
      (origin
        (method git-fetch)
        (uri (git-reference
              (url "https://github.com/jirka-h/haveged.git")
-             (commit version)))
+             (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1hrwzjd4byq4fdrg8svww3d8x449k80jxxrjy9v6jvzhfv19rvxr"))))
+        (base32 "11kr19n2f87izsj341lv5amhd1wc2ckfmqr9pq5fxix8pkbs94rh"))))
     (build-system gnu-build-system)
-    (home-page "http://www.issihosts.com/haveged")
+    (home-page "https://www.issihosts.com/haveged")
     (synopsis "Entropy source for the Linux random number generator")
     (description
      "haveged generates an unpredictable stream of random numbers for use by
@@ -4469,10 +4517,10 @@ standard mechanisms for filling the entropy pool may not be sufficient for
 systems with high needs or limited user interaction, such as headless servers.
 
 @command{haveged} runs as a privileged daemon, harvesting randomness from the
-indirect effects of hardware events on hidden processor state using the HArdware
-Volatile Entropy Gathering and Expansion (@dfn{HAVEGE}) algorithm.  It tunes
-itself to its environment and provides the same built-in test suite for the
-output stream as used on certified hardware security devices.
+indirect effects of hardware events on hidden processor state using the
+@acronym{HAVEGE, HArdware Volatile Entropy Gathering and Expansion} algorithm.
+It tunes itself to its environment and provides the same built-in test suite
+for the output stream as used on certified hardware security devices.
 
 The quality of the randomness produced by this algorithm has not been proven.
 It is recommended to run it together with another entropy source like rngd, and
@@ -4845,7 +4893,7 @@ running boot option, and more.")
     (version "12.1.6")
     (source (origin
               (method url-fetch)
-              (uri (string-append "http://perso.orange.fr/sebastien.godard/"
+              (uri (string-append "http://pagesperso-orange.fr/sebastien.godard/"
                                   "sysstat-" version ".tar.xz"))
               (sha256
                (base32
@@ -5122,14 +5170,14 @@ re-use code and to avoid re-inventing the wheel.")
 (define-public libnftnl
   (package
     (name "libnftnl")
-    (version "1.1.3")
+    (version "1.1.4")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "mirror://netfilter.org/libnftnl/"
                            "libnftnl-" version ".tar.bz2"))
        (sha256
-        (base32 "03xszkcpqk3s1rqc6vh7g5j13kh3d3yjnvjhk5scds3an39rgp92"))))
+        (base32 "087dfc2n4saf2k68hyi4byvgz5grwpw5kfjvmkpn3wmd8y1riiy8"))))
     (build-system gnu-build-system)
     (native-inputs
      `(("pkg-config" ,pkg-config)))
@@ -5146,7 +5194,7 @@ used by nftables.")
 (define-public nftables
   (package
     (name "nftables")
-    (version "0.9.0")
+    (version "0.9.2")
     (source
      (origin
        (method url-fetch)
@@ -5154,7 +5202,7 @@ used by nftables.")
                            "/files/nftables-" version ".tar.bz2"))
        (sha256
         (base32
-         "14bygs6vg2v448cw5r4pxqi8an29hw0m9vab8hpmgjmrzjsq30dd"))))
+         "1x8kalbggjq44j4916i6vyv1rb20dlh1dcsf9xvzqsry2j063djw"))))
     (build-system gnu-build-system)
     (arguments `(#:configure-flags
                  '("--disable-man-doc"))) ; FIXME: Needs docbook2x.
@@ -5856,15 +5904,15 @@ the superuser to make device nodes.")
 (define-public fakeroot
   (package
     (name "fakeroot")
-    (version "1.23")
+    (version "1.24")
     (source (origin
               (method url-fetch)
-              (uri (string-append "http://ftp.debian.org/debian/pool/main/f/"
-                                  "fakeroot/fakeroot_" version ".orig.tar.xz"))
+              (uri (string-append "https://deb.debian.org/debian/pool/main/f/"
+                                  "fakeroot/fakeroot_" version ".orig.tar.gz"))
               (file-name (string-append name "-" version ".tar.gz"))
               (sha256
                (base32
-                "1xpl0s2yjyjwlf832b6kbkaa5921liybaar13k7n45ckd9lxd700"))))
+                "1vb6f93hjyqnwx8dc8mm3dgma7axgqk8s7sdsjs8l2rpc0qmn11f"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
@@ -5962,3 +6010,43 @@ have to construct the archives directly, without using the archiver.")
     (description "inputattach dispatches input events from several device
 types and interfaces and translates so that the X server can use them.")
     (license license:gpl2+)))
+
+(define-public ell
+  (package
+    (name "ell")
+    (version "0.23")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://git.kernel.org/pub/scm/libs/ell/ell.git")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1qhlcwhn0gj877yss2ymx1aczghlddzb5v9mm1dgp2zliii3jy10"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'fix-dbus-tests
+           (lambda _
+             (substitute* '("unit/test-dbus-message-fds.c"
+                            "unit/test-dbus-properties.c"
+                            "unit/test-dbus.c")
+               (("/usr/bin/dbus-daemon") (which "dbus-daemon")))
+             #t)))))
+    (inputs
+     `(("dbus" ,dbus)
+       ("libtool" ,libtool)))
+    (native-inputs
+     `(("autoconf" ,autoconf)
+       ("pkgconfig" ,pkg-config)
+       ("automake" ,automake)))
+    (home-page "https://01.org/ell")
+    (synopsis "Embedded Linux Library")
+    (description "The Embedded Linux* Library (ELL) provides core, low-level
+functionality for system daemons.  It typically has no dependencies other than
+the Linux kernel, C standard library, and libdl (for dynamic linking).  While
+ELL is designed to be efficient and compact enough for use on embedded Linux
+platforms, it is not limited to resource-constrained systems.")
+    (license license:lgpl2.1+)))

@@ -1264,14 +1264,14 @@ changes.")
 (define-public tdb
   (package
     (name "tdb")
-    (version "1.4.0")
+    (version "1.4.2")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://www.samba.org/ftp/tdb/tdb-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "0d9d2f1c83gmmq30bkfs50yb8399mr9xjjzscma4kyq0ajf75861"))))
+                "0jh0iqbb6pkvqrqn033w5g6gwa4bdgkvp49z0qpkk3h2wk6b4h4h"))))
     (build-system gnu-build-system)
     (arguments
      '(#:phases
@@ -2430,14 +2430,14 @@ You might also want to install the following optional dependencies:
 (define-public python-alembic
   (package
     (name "python-alembic")
-    (version "1.0.10")
+    (version "1.0.11")
     (source
      (origin
        (method url-fetch)
        (uri (pypi-uri "alembic" version))
        (sha256
         (base32
-         "1dwl0264r6ri2jyrjr68am04x538ab26xwy4crqjnnhm4alwm3c2"))))
+         "1k5hag0vahd5vrf9abx8fdj2whrwaw2iq2yp736mmxnbsn5xkdyd"))))
     (build-system python-build-system)
     (native-inputs
      `(("python-mock" ,python-mock)
@@ -2448,8 +2448,7 @@ You might also want to install the following optional dependencies:
        ("python-mako" ,python-mako)
        ("python-editor" ,python-editor)))
     (home-page "https://bitbucket.org/zzzeek/alembic")
-    (synopsis
-     "Database migration tool for SQLAlchemy")
+    (synopsis "Database migration tool for SQLAlchemy")
     (description
      "Alembic is a lightweight database migration tool for usage with the
 SQLAlchemy Database Toolkit for Python.")

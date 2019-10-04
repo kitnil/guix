@@ -490,7 +490,8 @@ the image."
         #~(begin
             (use-modules (guix docker) (guix build store-copy)
                          (guix profiles) (guix search-paths)
-                         (srfi srfi-19) (ice-9 match))
+                         (srfi srfi-1) (srfi srfi-19)
+                         (ice-9 match))
 
             (define environment
               (map (match-lambda
@@ -499,6 +500,35 @@ the image."
                             value)))
                    (profile-search-paths #$profile)))
 
+            (define symlink->directives
+              ;; Return "populate directives" to make the given symlink and its
+              ;; parent directories.
+              (match-lambda
+                ((source '-> target)
+                 (let ((target (string-append #$profile "/" target))
+                       (parent (dirname source)))
+                   `((directory ,parent)
+                     (,source -> ,target))))))
+
+            (define directives
+              ;; Create a /tmp directory, as some programs expect it, and
+              ;; create SYMLINKS.
+              `((directory "/tmp" ,(getuid) ,(getgid) #o1777)
+                ,@(append-map symlink->directives '#$symlinks)))
+
+            (define tag
+              ;; Compute a meaningful "repository" name, which will show up in
+              ;; the output of "docker images".
+              (let ((manifest (profile-manifest #$profile)))
+                (let loop ((names (map manifest-entry-name
+                                       (manifest-entries manifest))))
+                  (define str (string-join names "-"))
+                  (if (< (string-length str) 40)
+                      str
+                      (match names
+                        ((_) str)
+                        ((names ... _) (loop names))))))) ;drop one entry
+
             (setenv "PATH" (string-append #$archiver "/bin"))
 
             (build-docker-image #$output
@@ -506,6 +536,7 @@ the image."
                                      (call-with-input-file "profile"
                                        read-reference-graph))
                                 #$profile
+                                #:repository tag
                                 #:database #+database
                                 #:system (or #$target (utsname:machine (uname)))
                                 #:environment environment
@@ -513,7 +544,7 @@ the image."
                                 #$(and entry-point
                                        #~(list (string-append #$profile "/"
                                                               #$entry-point)))
-                                #:symlinks '#$symlinks
+                                #:extra-files directives
                                 #:compressor '#$(compressor-command compressor)
                                 #:creation-time (make-time time-utc 0 1))))))
 
@@ -926,7 +957,8 @@ Create a bundle of PACKAGE.\n"))
                                   (list (transform store package) output))
                                  ((? package? package)
                                   (list (transform store package) "out")))
-                               (filter-map maybe-package-argument opts)))
+                               (reverse
+                                (filter-map maybe-package-argument opts))))
            (manifest-file (assoc-ref opts 'manifest)))
       (define properties
         (if (assoc-ref opts 'save-provenance?)

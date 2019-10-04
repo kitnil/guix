@@ -56,6 +56,7 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix cvs-download)
   #:use-module (guix hg-download)
@@ -68,6 +69,7 @@
   #:use-module (guix build-system python)
   #:use-module (guix build-system ant)
   #:use-module (guix build-system scons)
+  #:use-module (guix build-system go)
   #:use-module (gnu packages)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages adns)
@@ -76,6 +78,8 @@
   #:use-module (gnu packages check)
   #:use-module (gnu packages documentation)
   #:use-module (gnu packages docbook)
+  #:use-module (gnu packages emacs)
+  #:use-module (gnu packages emacs-xyz)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages curl)
@@ -92,6 +96,7 @@
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages gnu-doc)
   #:use-module (gnu packages gnupg)
+  #:use-module (gnu packages golang)
   #:use-module (gnu packages gperf)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages guile)
@@ -121,6 +126,7 @@
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages qt)
   #:use-module (gnu packages readline)
+  #:use-module (gnu packages re2c)
   #:use-module (gnu packages sphinx)
   #:use-module (gnu packages texinfo)
   #:use-module (gnu packages textutils)
@@ -206,14 +212,14 @@ Interface} specification.")
     ;; ’stable’ and recommends that “in general you deploy the NGINX mainline
     ;; branch at all times” (https://www.nginx.com/blog/nginx-1-6-1-7-released/)
     ;; Consider updating the nginx-documentation package together with this one.
-    (version "1.17.2")
+    (version "1.17.4")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://nginx.org/download/nginx-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "1v39gslwbvpfhqqv74q0lkfrhrwsp59xc8pwhvxns7af8s3kccsy"))))
+                "0mg521bxh8pysmy20x599m252ici9w97kk7qy7s0wrv6bqv4p1b2"))))
     (build-system gnu-build-system)
     (inputs `(("openssl" ,openssl)
               ("pcre" ,pcre)
@@ -856,6 +862,45 @@ for efficient socket-like bidirectional reliable communication channels.")
 
     ;; This is LGPLv2.1-only with extra exceptions specified in 'LICENSE'.
     (license license:lgpl2.1)))
+
+(define-public wabt
+  (package
+    (name "wabt")
+    (version "1.0.12")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/WebAssembly/wabt")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1zlv3740wkqj4mn6sr84h0x6wk2lcp4pwwmqsh5yyqp1j1glbsa0"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:configure-flags '("-DBUILD_TESTS=OFF")
+       #:tests? #f))
+    (inputs `(("python" ,python-2)
+              ("re2c" ,re2c)))
+    (home-page "https://github.com/WebAssembly/wabt")
+    (synopsis "WebAssembly Binary Toolkit")
+    (description "WABT (pronounced: wabbit) is a suite of tools for
+WebAssembly, including:
+
+* wat2wasm: translate from WebAssembly text format to the WebAssembly binary
+  format
+* wasm2wat: the inverse of wat2wasm, translate from the binary format back
+  to the text format (also known as a .wat)
+* wasm-objdump: print information about a wasm binary.  Similar to objdump.
+* wasm-interp: decode and run a WebAssembly binary file using a stack-based
+  interpreter
+* wat-desugar: parse .wat text form as supported by the spec interpreter
+  (s-expressions, flat syntax, or mixed) and print canonical flat format
+* wasm2c: convert a WebAssembly binary file to a C source and header
+
+These tools are intended for use in (or for development of) toolchains or
+other systems that want to manipulate WebAssembly files.")
+    (license license:asl2.0)))
 
 (define-public websocketpp
   (package
@@ -3971,6 +4016,99 @@ CDF, Atom 0.3, and Atom 1.0 feeds.")
 (define-public python2-feedparser
   (package-with-python2 python-feedparser))
 
+(define-public guix-data-service
+  (let ((commit "e00aabde4388c014778475966da2b7021dfef560")
+        (revision "2"))
+    (package
+      (name "guix-data-service")
+      (version (string-append "0.0.1-" revision "." (string-take commit 7)))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://git.savannah.gnu.org/git/guix/data-service.git")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0nd73bhir4c6a0smvgz7dfc6m6sbxd8v6amwpgk3c8m27g8chk5b"))))
+      (build-system gnu-build-system)
+      (arguments
+       '(#:tests? #f                    ; TODO Tests require PostgreSQL
+         #:modules ((guix build utils)
+                    (guix build gnu-build-system)
+                    (ice-9 rdelim)
+                    (ice-9 popen))
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'set-paths 'set-GUIX_ENVIRONMENT
+             (lambda* (#:key inputs #:allow-other-keys)
+               ;; This means guix.el finds the Emacs modules
+               (setenv "GUIX_ENVIRONMENT"
+                       (assoc-ref inputs "emacs-with-modules"))
+               #t))
+           (add-before 'build 'set-GUILE_AUTO_COMPILE
+             (lambda _
+               ;; To avoid errors relating to guild
+               (setenv "GUILE_AUTO_COMPILE" "0")
+               #t))
+           (add-after 'install 'wrap-executable
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let* ((out (assoc-ref outputs "out"))
+                      (bin (string-append out "/bin"))
+                      (guile (assoc-ref inputs "guile"))
+                      (guile-effective-version
+                       (read-line
+                        (open-pipe* OPEN_READ
+                                    (string-append guile "/bin/guile")
+                                    "-c" "(display (effective-version))")))
+                      (scm (string-append out "/share/guile/site/"
+                                          guile-effective-version))
+                      (go  (string-append out "/lib/guile/"
+                                          guile-effective-version
+                                          "/site-ccache")))
+                 (for-each
+                  (lambda (file)
+                    (wrap-program (string-append bin "/" file)
+                      `("PATH" ":" prefix
+                        (,bin))
+                      `("GUILE_LOAD_PATH" ":" prefix
+                        (,scm ,(getenv "GUILE_LOAD_PATH")))
+                      `("GUILE_LOAD_COMPILED_PATH" ":" prefix
+                        (,go ,(getenv "GUILE_LOAD_COMPILED_PATH")))))
+                  '("guix-data-service"
+                    "guix-data-service-process-branch-updated-email"
+                    "guix-data-service-process-branch-updated-mbox"
+                    "guix-data-service-process-job"
+                    "guix-data-service-process-jobs"
+                    "guix-data-service-query-build-servers"))
+                 #t)))
+           (delete 'strip))))           ; As the .go files aren't compatible
+      (inputs
+       `(("guix" ,guix)
+         ("guile-fibers" ,guile-fibers)
+         ("guile-json" ,guile-json-3)
+         ("guile-email" ,guile-email)
+         ("guile-squee" ,guile-squee)
+         ("postgresql" ,postgresql)
+         ("sqitch" ,sqitch)))
+      (native-inputs
+       `(("guile" ,guile-2.2)
+         ("autoconf" ,autoconf)
+         ("automake" ,automake)
+         ("emacs-with-modules" ,(directory-union
+                                 "emacs-union"
+                                 (list emacs-no-x
+                                       emacs-htmlize)))
+         ("pkg-config" ,pkg-config)))
+      (synopsis "Store and provide data about GNU Guix")
+      (description
+       "The Guix Data Service stores data about GNU Guix, and provides this
+through a web interface.  It supports listening to the guix-commits mailing
+list to find out about new revisions, then loads the data from these in to a
+PostgreSQL database.")
+      (home-page "http://data.guix.gnu.org/")
+      (license license:agpl3+))))
+
 (define-public gumbo-parser
   (package
     (name "gumbo-parser")
@@ -4926,13 +5064,13 @@ deployments.")
   (package
     (name "varnish")
     (home-page "https://varnish-cache.org/")
-    (version "6.2.0")
+    (version "6.3.0")
     (source (origin
               (method url-fetch)
               (uri (string-append home-page "_downloads/varnish-" version ".tgz"))
               (sha256
                (base32
-                "0lwfk2gq99c653h5f51fs3j37r0gh2pf0p4w5z986nm2mi9z6yn3"))))
+                "0zwlffdd1m0ih33nq40xf2wwdyvr4czmns2fs90qpfnwy72xxk4m"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags (list (string-append "LDFLAGS=-Wl,-rpath=" %output "/lib")
@@ -4947,7 +5085,8 @@ deployments.")
            (lambda _
              (substitute* '("bin/varnishtest/vtc_varnish.c"
                             "bin/varnishtest/vtc_process.c"
-                            "bin/varnishd/mgt/mgt_vcc.c")
+                            "bin/varnishd/mgt/mgt_vcc.c"
+                            "bin/varnishtest/tests/u00014.vtc")
                (("/bin/sh") (which "sh")))
              (substitute* "bin/varnishd/mgt/mgt_shmem.c"
                (("rm -rf") (string-append (which "rm") " -rf")))
@@ -6384,7 +6523,7 @@ derivation by David Revoy from the original MonsterID by Andreas Gohr.")
        (method url-fetch)
        (uri (string-append "https://github.com/nghttp2/nghttp2/"
                            "releases/download/v" version "/"
-                           name "-" version ".tar.xz"))
+                           "nghttp2-" version ".tar.xz"))
        (sha256
         (base32
          "0fi6qg2w82636wixwkqy7bclpgxslmvg82r431hs8h6aqc4mnzwv"))))
@@ -6597,3 +6736,35 @@ It's also possible to rewrite existing log files.
 
 Anonip can also be uses as a Python module in your own Python application.")
     (license license:bsd-3)))
+
+(define-public poussetaches
+  (package
+    (name "poussetaches")
+    (version "0.0.2")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/tsileo/poussetaches")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0kckcwvqklavd855np9aq5js6mg84isrlwchr504yigwma0sm7hm"))))
+    (build-system go-build-system)
+    (propagated-inputs
+     `(("go-github-com-robfig-cron" ,go-github-com-robfig-cron)
+       ("go-golang-org-x-time-rate" ,go-golang-org-x-time-rate)))
+    (arguments
+     `(#:import-path "github.com/tsileo/poussetaches"))
+    (home-page "https://github.com/tsileo/poussetaches")
+    (synopsis "Lightweight asynchronous task execution service")
+    (description "Poussetaches (which literally means \"push tasks\" in
+French) is a lightweight asynchronous task execution service that aims to
+replace Celery and RabbitMQ for small Python applications.
+
+The app posts base64-encoded payload to poussetaches and specifies the
+endpoint that will be used to trigger the task.  Poussetaches makes HTTP
+requests with the registered payload until the right status code is
+returned.")
+    (license license:isc)))

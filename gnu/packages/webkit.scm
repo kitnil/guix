@@ -2,9 +2,10 @@
 ;;; Copyright © 2015 Sou Bunnbu <iyzsong@gmail.com>
 ;;; Copyright © 2015 David Hashe <david.hashe@dhashe.com>
 ;;; Copyright © 2015 Ricardo Wurmus <rekado@elephly.net>
-;;; Copyright © 2015, 2016, 2017, 2018 Mark H Weaver <mhw@netris.org>
+;;; Copyright © 2015, 2016, 2017, 2018, 2019 Mark H Weaver <mhw@netris.org>
 ;;; Copyright © 2018 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2018 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2019 Marius Bakke <mbakke@fastmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -34,6 +35,7 @@
   #:use-module (gnu packages docbook)
   #:use-module (gnu packages enchant)
   #:use-module (gnu packages flex)
+  #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gettext)
   #:use-module (gnu packages gl)
@@ -46,6 +48,7 @@
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages image)
   #:use-module (gnu packages libreoffice)
+  #:use-module (gnu packages linux)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python)
@@ -53,8 +56,67 @@
   #:use-module (gnu packages sqlite)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages video)
+  #:use-module (gnu packages virtualization)
   #:use-module (gnu packages xml)
+  #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
+
+(define-public libwpe
+  (package
+    (name "libwpe")
+    (version "1.4.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://wpewebkit.org/releases/libwpe-"
+                                  version ".tar.xz"))
+              (sha256
+               (base32
+                "1221vs72zs87anrzhbm6pf8jnii7s6ms7mkzj6nlds9zqd7lklz2"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:tests? #f))                    ;no tests
+    (native-inputs
+     `(("pkg-config" ,pkg-config)))
+    (inputs
+     `(("mesa" ,mesa)))
+    (propagated-inputs
+     `(;; In Requires of wpe-1.0.pc.
+       ("libxkbcommon" ,libxkbcommon)))
+    (home-page "https://wpewebkit.org/")
+    (synopsis "Platform agnostic WebKit interfaces")
+    (description
+     "@code{libwpe} is a small library that defines programming interfaces
+for use by WebKit, and provides a mechanism for loading a platform-specific
+backend which implements them.")
+    (license license:bsd-2)))
+
+(define-public wpebackend-fdo
+  (package
+    (name "wpebackend-fdo")
+    (version "1.4.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://wpewebkit.org/releases/"
+                                  "wpebackend-fdo-" version ".tar.xz"))
+              (sha256
+               (base32
+                "1bwbs47v4nlzhsqrw9fpyny5m3n9ry0kfzsvk90zjif4bd5cl6d9"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:tests? #f))                    ;no tests
+    (native-inputs
+     `(("pkg-config" ,pkg-config)))
+    (inputs
+     `(("glib" ,glib)
+       ("libwpe" ,libwpe)
+       ("mesa" ,mesa)
+       ("wayland" ,wayland)))
+    (home-page "https://wpewebkit.org/")
+    (synopsis "Wayland WPE backend")
+    (description
+     "This package provides a backend implementation for the WPE WebKit
+engine that uses Wayland for graphics output.")
+    (license license:bsd-2)))
 
 (define-public webkitgtk
   (package
@@ -165,22 +227,27 @@ HTML/CSS applications to full-fledged web browsers.")
 ;; newer version of GCC than our default compiler, and this causes problems
 ;; when linked with C++ libraries built using our default compiler.  For now,
 ;; we use this newer webkitgtk only for selected packages, e.g. epiphany.
-(define-public webkitgtk-2.24
+(define-public webkitgtk-2.26
   (package/inherit webkitgtk
     (name "webkitgtk")
-    (version "2.24.3")
+    (version "2.26.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://www.webkitgtk.org/releases/"
                                   name "-" version ".tar.xz"))
               (sha256
                (base32
-                "0lbcrw5axwrbrajxq7fqywfyh0djqi23ynzb5wi5ghw2grnp83cl"))))
+                "0mfikjfjhwcnrxbzdyh3fl9bbs2azgbdnx8h5910h41b3n022jvb"))))
     (native-inputs
      `(("gcc" ,gcc-7)  ; webkitgtk-2.22 requires gcc-6 or newer
        ,@(package-native-inputs webkitgtk)))
     (inputs
-     `(("openjpeg" ,openjpeg)
+     `(("bubblewrap" ,bubblewrap)
+       ("libseccomp" ,libseccomp)
+       ("libwpe" ,libwpe)
+       ("openjpeg" ,openjpeg)
+       ("wpebackend-fdo" ,wpebackend-fdo)
+       ("xdg-dbus-proxy" ,xdg-dbus-proxy)
        ,@(package-inputs webkitgtk)))
     (arguments
      (substitute-keyword-arguments (package-arguments webkitgtk)

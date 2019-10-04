@@ -25,6 +25,8 @@
 ;;; Copyright © 2018 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2019 Brett Gilio <brettg@posteo.net>
 ;;; Copyright © 2019 Björn Höfling <bjoern.hoefling@bjoernhoefling.de>
+;;; Copyright © 2019 Jakob L. Kreuze <zerodaysfordays@sdf.lonestar.org>
+;;; Copyright © 2019 Hartmut Goebel <h.goebel@crazy-compilers.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -55,9 +57,11 @@
   #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages)
+  #:use-module (gnu packages algebra)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages check)
+  #:use-module (gnu packages crypto)
   #:use-module (gnu packages cyrus-sasl)
   #:use-module (gnu packages dns)
   #:use-module (gnu packages file)
@@ -110,6 +114,7 @@
   #:use-module (gnu packages boost)
   #:use-module (gnu packages elf)
   #:use-module (gnu packages mpi)
+  #:use-module (gnu packages version-control)
   #:use-module (gnu packages web))
 
 (define-public aide
@@ -684,7 +689,7 @@ connection alive.")
 (define-public isc-dhcp
   (let* ((bind-major-version "9")
          (bind-minor-version "11")
-         (bind-patch-version "10")
+         (bind-patch-version "11")
          (bind-release-type "")         ; for patch release, use "-P"
          (bind-release-version "")      ; for patch release, e.g. "6"
          (bind-version (string-append bind-major-version
@@ -825,7 +830,7 @@ connection alive.")
                                         "/bind-" bind-version ".tar.gz"))
                     (sha256
                      (base32
-                      "1hvhdaar9swh5087kzkbmav1nbn19rxh0m60x0d7gri0v8689fxj"))))
+                      "0swavslyli3vcrkcm2ip11s6p58g3k7r4gjs2b899r25cqrk0lk1"))))
 
                 ;; When cross-compiling, we need the cross Coreutils and sed.
                 ;; Otherwise just use those from %FINAL-INPUTS.
@@ -846,14 +851,14 @@ tools: server, client, and relay agent.")
 (define-public libpcap
   (package
     (name "libpcap")
-    (version "1.9.0")
+    (version "1.9.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://www.tcpdump.org/release/libpcap-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "06bhydl4vr4z9c3vahl76f2j96z1fbrcl7wwismgs4sris08inrf"))))
+                "153h1378diqyc27jjgz6gg5nxmb4ddk006d9xg69nqavgiikflk3"))))
     (build-system gnu-build-system)
     (native-inputs
      `(("bison" ,bison)
@@ -874,14 +879,14 @@ network statistics collection, security monitoring, network debugging, etc.")
 (define-public tcpdump
   (package
     (name "tcpdump")
-    (version "4.9.2")
+    (version "4.9.3")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://www.tcpdump.org/release/tcpdump-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "0ygy0layzqaj838r5xd613iraz09wlfgpyh7pc6cwclql8v3b2vr"))))
+                "0434vdcnbqaia672rggjzdn4bb8p8dchz559yiszzdk0sjrprm1c"))))
     (build-system gnu-build-system)
     (inputs `(("libpcap" ,libpcap)
               ("openssl" ,openssl)))
@@ -1500,7 +1505,7 @@ module slots, and the list of I/O ports (e.g. serial, parallel, USB).")
 (define-public acpica
   (package
     (name "acpica")
-    (version "20190703")
+    (version "20190816")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -1508,7 +1513,7 @@ module slots, and the list of I/O ports (e.g. serial, parallel, USB).")
                     version ".tar.gz"))
               (sha256
                (base32
-                "0kp3ian3lffx9709ajrr3bp6b9cb6c6v1crjziyr8j8pp639jlwz"))))
+                "0lipy3jwl498lvgwzj6xcvmg61myl7hhilpallh1cf3ppgrq13l8"))))
     (build-system gnu-build-system)
     (native-inputs `(("flex" ,flex)
                      ("bison" ,bison)))
@@ -1718,7 +1723,7 @@ track changes in important system configuration files.")
 (define-public libcap-ng
   (package
     (name "libcap-ng")
-    (version "0.7.9")
+    (version "0.7.10")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -1726,7 +1731,7 @@ track changes in important system configuration files.")
                     version ".tar.gz"))
               (sha256
                (base32
-                "0a0k484kwv0zilry2mbl9k56cnpdhsjxdxin17jas6kkyfy345aa"))))
+                "1gzzy12agfa9ddipdf72h9y68zqqnvsjjylv4vnq6hj4w2safk58"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -1899,6 +1904,101 @@ sys.argv[0] = re.sub(r'\\.([^/]*)-real$', r'\\1', sys.argv[0])
 handles configuration management, application deployment, cloud provisioning,
 ad hoc task execution, and multinode orchestration---including trivializing
 things like zero-downtime rolling updates with load balancers.")
+    (license license:gpl3+)))
+
+(define-public debops
+  (package
+    (name "debops")
+    (version "1.1.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/debops/debops")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "052b2dykdn35pdpn9s4prawl6nl6yzih8nyf54hpvhpisvjrm1v5"))
+       (patches
+        (search-patches "debops-constants-for-external-program-names.patch"
+                        "debops-debops-defaults-fall-back-to-less.patch"))))
+    (build-system python-build-system)
+    (native-inputs
+     `(("git" ,git)))
+    (inputs
+     `(("ansible" ,ansible)
+       ("encfs" ,encfs)
+       ("fuse" ,fuse)
+       ("util-linux" ,util-linux)  ;; for umount
+       ("findutils" ,findutils)
+       ("gnupg" ,gnupg)
+       ("which" ,which)))
+    (propagated-inputs
+     `(("python-future" ,python-future)
+       ("python-distro" ,python-distro)))
+    (arguments
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'nuke-debops-update
+           (lambda _
+             (chmod "bin/debops-update" #o755) ; FIXME work-around git-fetch issue
+             (with-output-to-file "bin/debops-update"
+               (lambda ()
+                 (format #t "#!/bin/sh
+echo 'debops is installed via guix. guix-update is useless in this case.
+Please use `guix package -u debops` instead.'")))
+             #t))
+         ;; patch shebangs only in actuall scripts, not in files included in
+         ;; roles (which are to be delivered to the targte systems)
+         (delete `patch-generated-file-shebangs)
+         (replace 'patch-source-shebangs
+           (lambda _
+             (for-each patch-shebang
+                       (find-files "bin"
+                                   (lambda (file stat)
+                                     ;; Filter out symlinks.
+                                     (eq? 'regular (stat:type stat)))
+                                   #:stat lstat))))
+         (add-after 'unpack 'fix-paths
+           (lambda _
+             (define (substitute-program-names file)
+               ;; e.g. ANSIBLE_PLAYBOOK = '/gnu/store/…/bin/ansible-playbook'
+               (for-each
+                (lambda (name)
+                  (let ((varname (string-upcase
+                                  (string-map
+                                   (lambda (c) (if (char=? c #\-) #\_ c))
+                                   name))))
+                    (substitute* file
+                      (((string-append "^(" varname " = )'.*'") line prefix)
+                       (string-append prefix "'" (which name) "'")))))
+                '("ansible-playbook" "encfs" "find" "fusermount"
+                  "umount" "gpg" "ansible" "which")))
+             (for-each substitute-program-names
+                       '("bin/debops"
+                         "bin/debops-padlock"
+                         "bin/debops-task"
+                         "debops/__init__.py"
+                         "debops/cmds/__init__.py"))
+             #t)))))
+    (home-page "https://www.debops.org/")
+    (synopsis "Collection of general-purpose Ansible roles")
+    (description "The Ansible roles provided by that can be used to manage
+Debian or Ubuntu hosts.  In addition, a default set of Ansible playbooks can
+be used to apply the provided roles in a controlled way, using Ansible
+inventory groups.
+
+The roles are written with a high customization in mind, which can be done
+using Ansible inventory.  This way the role and playbook code can be shared
+between multiple environments, with different configuration in to each one.
+
+Services can be managed on a single host, or spread between multiple hosts.
+DebOps provides support for different SQL and NoSQL databases, web servers,
+programming languages and specialized applications useful in a data center
+environment or in a cluster.  The project can also be used to deploy
+virtualization environments using KVM/libvirt, Docker or LXC technologies to
+manage virtual machines and/or containers.")
     (license license:gpl3+)))
 
 (define-public emacs-ansible-doc
@@ -2725,7 +2825,7 @@ tool for remote execution and deployment.")
 (define-public neofetch
   (package
     (name "neofetch")
-    (version "6.0.0")
+    (version "6.1.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -2733,7 +2833,7 @@ tool for remote execution and deployment.")
                     (commit version)))
               (sha256
                (base32
-                "0j0r40llyry1sgc6p9wd7jrpydps2lnj4rwajjp37697g2bik89i"))))
+                "022xzn9jk18k2f4b6011d8jk5nbl84i3mw3inlz4q52p2hvk8fch"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f                      ; there are no tests
@@ -2750,6 +2850,63 @@ logo, or any ASCII file of your choice.  The main purpose of Neofetch is to be
 used in screenshots to show other users what operating system or distribution
 you are running, what theme or icon set you are using, etc.")
     (license license:expat)))
+
+(define-public screenfetch
+  (let ((commit "e7b94fc3c529b9b97f32b71fd4bc05fb1d0f5864"))
+    (package
+      (name "screenfetch")
+      (version (git-version "3.8.0" "2" commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/KittyKatt/screenFetch")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "13i7dczbqwhws08zzrdraki1zkqv0qkbgx9c1r8vmg5qr9f7hfzg"))))
+      (build-system trivial-build-system)
+      (arguments
+       `(#:modules ((guix build utils))
+         #:builder
+         (begin
+           (use-modules (guix build utils))
+           (let ((source (assoc-ref %build-inputs "source"))
+                 (out    (assoc-ref %outputs "out")))
+             (mkdir-p (string-append out "/bin/"))
+             (copy-file (string-append source "/screenfetch-dev")
+                        (string-append out "/bin/screenfetch"))
+             (install-file (string-append source "/screenfetch.1")
+                           (string-append out "/man/man1/"))
+             (install-file (string-append source "/COPYING")
+                           (string-append out "/share/doc/" ,name "-" ,version))
+             (substitute* (string-append out "/bin/screenfetch")
+               (("/usr/bin/env bash")
+                (string-append (assoc-ref %build-inputs "bash")
+                               "/bin/bash")))
+             (wrap-program
+               (string-append out "/bin/screenfetch")
+               `("PATH" ":" prefix
+                 (,(string-append (assoc-ref %build-inputs "bc") "/bin:"
+                                  (assoc-ref %build-inputs "scrot") "/bin:"
+                                  (assoc-ref %build-inputs "xdpyinfo") "/bin"
+                                  (assoc-ref %build-inputs "xprop") "/bin"))))
+             (substitute* (string-append out "/bin/screenfetch")
+               (("#!#f")
+                (string-append "#!" (assoc-ref %build-inputs "bash")
+                               "/bin/bash")))))))
+      (inputs
+       `(("bash" ,bash)
+         ("bc" ,bc)
+         ("scrot" ,scrot)
+         ("xdpyinfo" ,xdpyinfo)
+         ("xprop" ,xprop)))
+      (home-page "https://github.com/KittyKatt/screenFetch")
+      (synopsis "System information script")
+      (description "Bash screenshot information tool which can be used to
+generate those nifty terminal theme information and ASCII distribution logos in
+everyone's screenshots nowadays.")
+      (license license:gpl3))))
 
 (define-public nnn
   (package

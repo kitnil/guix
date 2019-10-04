@@ -491,14 +491,14 @@ compromised.")
 (define-public znc
   (package
     (name "znc")
-    (version "1.7.4")
+    (version "1.7.5")
     (source (origin
               (method url-fetch)
               (uri (string-append "http://znc.in/releases/archive/znc-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "0wcvqkpin8w4i72alnn0nxnrc9ih543qs34hqpk9xmz6m0hjk8xi"))))
+                "08a7yb2xs85hyyz8dpzfbsfjwj2r6kcii022lj3l4rf8hl9ix558"))))
     (build-system cmake-build-system)
     (arguments
      `(#:configure-flags
@@ -996,18 +996,18 @@ messenger protocol.")
 (define-public utox
   (package
    (name "utox")
-   (version "0.17.0")
+   (version "0.17.1")
    (source
     (origin
      (method git-fetch)
      (uri (git-reference
            (url "https://github.com/uTox/uTox.git")
-           (commit "v0.17.0")
+           (commit (string-append "v" version))
            (recursive? #t))) ;; Needed for 'minini' git submodule.
      (file-name (string-append name "-" version "-checkout"))
      (sha256
       (base32
-       "12wbq883il7ikldayh8hm0cjfrkp45vn05xx9s1jbfz6gmkidyar"))))
+       "17kwqw24iqljp2icih9k6ikx12gzr8zzqr8y5h35bg8m5s8pasq5"))))
    (build-system cmake-build-system)
    (arguments
     `(#:configure-flags '("-DENABLE_TESTS=on")
