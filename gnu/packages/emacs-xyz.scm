@@ -532,7 +532,7 @@ deliver data to mobile and web apps.")
 
 (define-public emacs-ghub
   ;; We need a newer commit to avoid problems in emacs-forge.
-  (let ((commit "7d59937d7782d0062216130a4d059b45e8396f82")
+  (let ((commit "cf0b13aeba4df3798e49c205cac2d8fefd53a137")
         (revision "1"))
     (package
       (name "emacs-ghub")
@@ -545,7 +545,7 @@ deliver data to mobile and web apps.")
                 (file-name (git-file-name name version))
                 (sha256
                  (base32
-                  "1ngb61nij9gznqplwg1fmr1vq1czry759hmdibzngl4wqhxpfsjq"))))
+                  "0fzayvcysk80vv4q332axcjf80x6gsnpcbl0svmpb017ii6wxhid"))))
       (build-system emacs-build-system)
       (arguments
        `(#:phases
