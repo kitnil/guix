@@ -429,6 +429,7 @@ configuration file."))
   (list (shepherd-service
          (provision '(zabbix-agent))
          (documentation "Run Zabbix agent daemon.")
+         (requirement '(loopback user-processes))
          (start #~(make-forkexec-constructor
                    (list #$(file-append (zabbix-agent-configuration-zabbix-agent config)
                                         "/sbin/zabbix_agentd")
