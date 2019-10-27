@@ -299,6 +299,7 @@ configuration file."))
   (list (shepherd-service
          (provision '(zabbix-server))
          (documentation "Run Zabbix server daemon.")
+         (requirement '(loopback user-processes))
          (start #~(make-forkexec-constructor
                    (list #$(file-append (zabbix-server-configuration-zabbix-server config)
                                         "/sbin/zabbix_server")
