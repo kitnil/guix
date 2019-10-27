@@ -1,6 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2017 Julien Lepiller <julien@lepiller.eu>
-;;; Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2018, 2019 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -842,6 +842,7 @@ manually.")
     (list (shepherd-service
            (provision '(ddclient))
            (documentation "Run ddclient daemon.")
+           (requirement '(networking syslogd user-processes))
            (start #~(make-forkexec-constructor
                      (list #$(file-append ddclient "/bin/ddclient")
                            "-foreground"
