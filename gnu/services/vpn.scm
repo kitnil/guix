@@ -86,8 +86,15 @@
 
 (define-enumerated-field-type proto
   (udp tcp udp6 tcp6))
-(define-enumerated-field-type dev
-  (tun tap))
+
+(define (dev? symbol)
+  (let ((string (symbol->string symbol)))
+    (or (string-prefix? "tun" string)
+        (string-prefix? "tap" string)
+        #f)))
+
+(define (serialize-dev field-name val)
+  (serialize-field field-name val))
 
 (define key-usage? boolean?)
 (define (serialize-key-usage field-name value)
