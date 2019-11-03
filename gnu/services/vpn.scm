@@ -292,6 +292,18 @@ by the authority given in @code{ca}.")
     "The key of the machine the daemon is running on. It must be the key whose
 certificate is @code{cert}.")
 
+   (auth-user-pass
+    (string "")
+    "The file containing a OpenVPN client's password.")
+
+   (auth-retry
+    (auth-retry 'none)
+    "Controls how OpenVPN responds to username/password verification.")
+
+   (auth-nocache?
+    (boolean #f)
+    "Don't cache username/passwords in virtual memory.")
+
    (comp-lzo?
     (boolean #t)
     "Whether to use the lzo compression algorithm.")
