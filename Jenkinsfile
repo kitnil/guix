@@ -2,56 +2,55 @@ pipeline {
     agent {
         label "master"
     }
-    parameters {
-        choice(name: "ACTION", choices: ["version", "make", "pull", "describe"], description: "Choose an action.")
-    }
     environment {
-        GUIX_REPOSITORY_LOCAL = "/home/oleg/src/guix"
+        LOCAL_WORKTREE = "/home/oleg/src/guix"
+        MASTER_WORKTREE = "${LOCAL_WORKTREE}-master"
+        BUILD_SCRIPT = '''
+#!/bin/sh
+env GUIX_PACKAGE_PATH= guix environment --pure guix                                     \
+    --ad-hoc help2man guile-sqlite3 guile-gcrypt                                        \
+    -- sh -c "set -e -x; ./bootstrap; ./configure --localstatedir=/var --prefix=; make"
+'''
     }
     stages {
-        stage("guix version") {
-            when { expression { params.ACTION == "version" } }
+        stage("Pulling from upstream Git") {
             steps {
-                sh "guix --version"
+                dir(LOCAL_WORKTREE) {
+                    sh "git pull --rebase upstream"
+                }
+                dir(MASTER_WORKTREE) {
+                    sh "git pull --rebase upstream"
+                }
             }
         }
-        stage("guix describe") {
-            when { expression { params.ACTION == "describe" } }
+        stage("Cloning from local Git") {
             steps {
-                sh "guix describe"
+                parallelGitClone url: "https://cgit.duckdns.org/git/guix/guix",
+                branch: "wip-local", nodeLabels: ["guix"], dir: LOCAL_WORKTREE
             }
         }
-        stage("git clone guix") {
-            when { expression { params.ACTION == "make" } }
+        stage("Invoking guix pull") {
             steps {
-                parallelGitClone url: "https://cgit.duckdns.org/git/guix/guix", branch: "wip-local", nodeLabels: ["guix"], dir: GUIX_REPOSITORY_LOCAL
+                parallelSh cmd: "guix pull --channels=${LOCAL_WORKTREE}/channels.scm",
+                nodeLabels: ["guix"]
             }
         }
-        stage("guix pull") {
-            when { anyOf {
-                    expression { params.ACTION == "make" }
-                    expression { params.ACTION == "pull" }
-            } }
+        stage("Invoking guix pull as root") {
             steps {
-                parallelSh cmd: "guix pull --channels=${GUIX_REPOSITORY_LOCAL}/channels.scm", nodeLabels: ["guix"]
+                parallelSh cmd: "sudo -i guix pull --channels=${LOCAL_WORKTREE}/channels.scm",
+                nodeLabels: ["guix"]
             }
         }
-        stage("sudo guix pull") {
-            when { anyOf {
-                    expression { params.ACTION == "make" }
-                    expression { params.ACTION == "pull" }
-            } }
+        stage("Building from Git") {
             steps {
-                parallelSh cmd: "sudo -i guix pull --channels=${GUIX_REPOSITORY_LOCAL}/channels.scm", nodeLabels: ["guix"]
+                parallelSh cmd: BUILD_SCRIPT, nodeLabels: ["guix"], dir: "/home/oleg/src/guix"
             }
         }
-        stage("make guix") {
-            when { expression { params.ACTION == "make" } }
+        stage("Building from master") {
             steps {
-                parallelSh cmd: '''
-                  #!/bin/sh
-                  env GUIX_PACKAGE_PATH= guix environment --pure guix --ad-hoc help2man guile-sqlite3 guile-gcrypt -- sh -c "set -e -x; ./bootstrap; ./configure --localstatedir=/var --prefix=; make"
-                ''', nodeLabels: ["guix"], dir: "/home/oleg/src/guix"
+                dir(MASTER_WORKTREE) {
+                    sh BUILD_SCRIPT
+                }
             }
         }
     }
