@@ -11,15 +11,17 @@ env GUIX_PACKAGE_PATH= guix environment --pure guix                             
     --ad-hoc help2man guile-sqlite3 guile-gcrypt                                        \
     -- sh -c "set -e -x; ./bootstrap; ./configure --localstatedir=/var --prefix=; make"
 '''
+        GUIX_PULL_COMMAND = "guix pull --branch=wip-local --channels=${LOCAL_WORKTREE}/channels.scm"
+        GIT_PULL_COMMAND = "git pull --rebase upstream"
     }
     stages {
         stage("Pulling from upstream Git") {
             steps {
                 dir(LOCAL_WORKTREE) {
-                    sh "git pull --rebase upstream"
+                    sh GIT_PULL_COMMAND
                 }
                 dir(MASTER_WORKTREE) {
-                    sh "git pull --rebase upstream"
+                    sh GIT_PULL_COMMAND
                 }
             }
         }
@@ -31,19 +33,19 @@ env GUIX_PACKAGE_PATH= guix environment --pure guix                             
         }
         stage("Invoking guix pull") {
             steps {
-                parallelSh cmd: "guix pull --channels=${LOCAL_WORKTREE}/channels.scm",
+                parallelSh cmd: GUIX_PULL_COMMAND,
                 nodeLabels: ["guix"]
             }
         }
         stage("Invoking guix pull as root") {
             steps {
-                parallelSh cmd: "sudo -i guix pull --channels=${LOCAL_WORKTREE}/channels.scm",
+                parallelSh cmd: "sudo -i ${GUIX_PULL_COMMAND}",
                 nodeLabels: ["guix"]
             }
         }
         stage("Building from Git") {
             steps {
-                parallelSh cmd: BUILD_SCRIPT, nodeLabels: ["guix"], dir: "/home/oleg/src/guix"
+                parallelSh cmd: BUILD_SCRIPT, nodeLabels: ["guix"], dir: LOCAL_WORKTREE
             }
         }
         stage("Building from master") {
@@ -52,6 +54,16 @@ env GUIX_PACKAGE_PATH= guix environment --pure guix                             
                     sh BUILD_SCRIPT
                 }
             }
+        }
+        stage('Trigger dotfiles job') {
+            steps {
+                build job: "../../wigust/dotfiles/master"
+            }
+        }
+    }
+    post {
+        always {
+            sendNotifications currentBuild.result
         }
     }
 }
