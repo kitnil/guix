@@ -2399,6 +2399,13 @@ Stack Overflow, Super User, and other StackExchange sites.")
     (propagated-inputs
      `(("emacs-s" ,emacs-s)
        ("emacs-dash" ,emacs-dash)))
+    (native-inputs
+     `(("ert-runner" ,emacs-ert-runner)
+       ("emacs-undercover" ,emacs-undercover)
+       ("emacs-ert-async" ,emacs-ert-async)))
+    (arguments
+     `(#:tests? #t
+       #:test-command '("ert-runner")))
     (home-page "https://github.com/rejeep/f.el")
     (synopsis "Emacs API for working with files and directories")
     (description "This package provides an Emacs library for working with
