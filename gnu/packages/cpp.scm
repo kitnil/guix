@@ -6,6 +6,7 @@
 ;;; Copyright © 2019 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2019 Jan Wielkiewicz <tona_kosmicznego_smiecia@interia.pl>
+;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -410,3 +411,31 @@ SObjectizer supports not only the Actor Model but also the Publish-Subscribe
 Model and CSP-like channels.  The goal of SObjectizer is to simplify
 development of concurrent and multithreaded applications in C++.")
     (license license:bsd-3)))
+
+(define-public rttr
+  (package
+    (name "rttr")
+    (version "0.9.6")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/rttrorg/rttr.git")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1yxad8sj40wi75hny8w6imrsx8wjasjmsipnlq559n4b6kl84ijp"))))
+    (build-system cmake-build-system)
+    (arguments
+     `(#:configure-flags '("-DBUILD_EXAMPLES=OFF"
+                           "-DBUILD_UNIT_TESTS=OFF"
+                           "-DBUILD_PACKAGE=OFF")
+       #:test-target "run_tests"
+       #:tests? #f))
+    (home-page "https://www.rttr.org")
+    (synopsis "C++ Reflection Library")
+    (description "This package provides a C++ Reflection Library.  RTTR stands
+for Run Time Type Reflection.  It describes the ability of a computer program
+to introspect and modify an object at runtime.")
+    (license license:expat)))
+
