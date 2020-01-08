@@ -8,6 +8,7 @@
 ;;; Copyright © 2019 Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;;; Copyright © 2018, 2019 Hartmut Goebel <h.goebel@crazy-compilers.com>
 ;;; Copyright © 2019 Ludovic Courtès <ludo@gnu.org>
+;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -40,6 +41,7 @@
   #:use-module (gnu packages boost)
   #:use-module (gnu packages code)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages cpp)
   #:use-module (gnu packages curl)
   #:use-module (gnu packages documentation)
   #:use-module (gnu packages gettext)
@@ -103,7 +105,7 @@
      (list license:lgpl2.0+ license:fdl1.2+))))
 
 (define-public kdenlive
-  (let ((version "18.08.1"))
+  (let ((version "19.12.0"))
     (package
       (name "kdenlive")
       (version version)
@@ -116,7 +118,7 @@
          (file-name (string-append name "-" version "-checkout"))
          (sha256
           (base32
-           "0ifnaclsz7w08mc485i3j1kkcpd1m8q5qamckrfwc375ac13xf4g"))))
+           "1b2ddmd31yg14p5vf4s8qjbmf12zxq8bsljccs6bk6rnsicaqy9l"))))
       (build-system cmake-build-system)
       (native-inputs
        `(("extra-cmake-modules" ,extra-cmake-modules)
@@ -144,7 +146,9 @@
          ("qtquickcontrols" ,qtquickcontrols)
          ("kiconthemes" ,kiconthemes)
          ("qtgraphicaleffects" ,qtgraphicaleffects)
-         ("kplotting" ,kplotting)))
+         ("qtmultimedia" ,qtmultimedia)
+         ("kplotting" ,kplotting)
+         ("rttr" ,rttr)))
       (arguments
        `(#:phases
          (modify-phases %standard-phases
