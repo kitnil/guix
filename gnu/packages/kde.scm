@@ -509,7 +509,7 @@ different notification systems.")
 (define-public kdeconnect
   (package
     (name "kdeconnect")
-    (version "1.3.5")
+    (version "1.4")
     (source
       (origin
         (method url-fetch)
@@ -518,7 +518,7 @@ different notification systems.")
                             version ".tar.xz"))
         (sha256
          (base32
-          "02lr3xx5s2mgddac4n3lkgr7ppf1z5m6ajs90rjix0vs8a271kp5"))))
+          "06i6spspqpl79x6z2bfvbgd08b3h1pyx5j1xjhd8ifyrm52pkvna"))))
     (build-system qt-build-system)
     (arguments
      `(#:configure-flags '("-DBUILD_TESTING=ON")
