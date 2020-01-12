@@ -7048,3 +7048,69 @@ of the DOM tree
     (license (list license:lgpl2.0
                    license:gpl2
                    license:asl2.0))))
+
+(define-public openresty
+  (package
+    (name "openresty")
+    (version "1.15.8.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://openresty.org/download/openresty-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0hh8aygyzxgb0cyafqin70nbi87jpnjvxbf00dljssbpl66278c9"))))
+    (inputs
+     `(("openssl" ,openssl)
+       ("zlib" ,zlib)
+       ("pcre" ,pcre)
+       ("libxml2" ,libxml2)
+       ("libxslt" ,libxslt)
+       ("gd" ,gd)
+       ;; ("geoip" ,geoip)
+       ("postgresql" ,postgresql)))
+    (native-inputs
+     `(("perl" ,perl)))
+    (arguments
+     `(#:configure-flags '("--with-pcre-jit"
+                           "--with-http_ssl_module"
+                           "--with-http_v2_module"
+                           "--with-http_realip_module"
+                           "--with-http_addition_module"
+                           "--with-http_xslt_module"
+                           "--with-http_image_filter_module"
+                           "--with-http_geoip_module"
+                           "--with-http_sub_module"
+                           "--with-http_dav_module"
+                           "--with-http_flv_module"
+                           "--with-http_mp4_module"
+                           "--with-http_gunzip_module"
+                           "--with-http_gzip_static_module"
+                           "--with-http_auth_request_module"
+                           "--with-http_random_index_module"
+                           "--with-http_secure_link_module"
+                           "--with-http_degradation_module"
+                           "--with-http_stub_status_module"
+                           "--with-http_postgres_module"
+                           "--with-ipv6")
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'configure
+           (lambda* (#:key inputs #:allow-other-keys)
+             (patch-shebang "configure" (list (string-append (assoc-ref inputs "perl") "/bin")))
+             (substitute* "configure"
+               (("! can_run\\(\"ldconfig\"\\)") "can_run\\(\"ldconfig\"\\)"))
+             (invoke "./configure")
+             #t))
+         (add-after 'install 'post-install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (symlink (string-append out "/bin/luajit-openresty")
+                        (string-append out "/luajit/bin/luajit-2.1.0-beta3"))
+               (symlink (string-append out "/bin/nginx")
+                        (string-append out "/nginx/sbin/nginx"))
+               #t))))))
+    (build-system gnu-build-system)
+    (home-page "https://openresty.org/")
+    (synopsis "Fast web application server built on Nginx")
+    (description "This package provides a fast web application server built on Nginx.")
+    (license license:bsd-2)))
