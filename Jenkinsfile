@@ -29,26 +29,26 @@ env GUIX_PACKAGE_PATH= guix environment --pure guix                             
             steps {
                 parallelGitClone url: "https://cgit.duckdns.org/git/guix/guix",
                 branch: "wip-local",
-                nodeLabels: ["guix", "guix vm"],
+                nodeLabels: ["guix", "guix nixbld", "guix vm"],
                 dir: LOCAL_WORKTREE
             }
         }
         stage("Invoking guix pull") {
             steps {
                 parallelSh cmd: GUIX_PULL_COMMAND,
-                nodeLabels: ["guix", "guix vm"]
+                nodeLabels: ["guix", "guix nixbld", "guix vm"]
             }
         }
         stage("Invoking guix pull as root") {
             steps {
                 parallelSh cmd: "sudo -i ${GUIX_PULL_COMMAND}",
-                nodeLabels: ["guix", "guix vm"]
+                nodeLabels: ["guix", "guix nixbld", "guix vm"]
             }
         }
         stage("Building from Git") {
             steps {
                 parallelSh cmd: BUILD_SCRIPT,
-                nodeLabels: ["guix", "guix vm"],
+                nodeLabels: ["guix", "guix nixbld", "guix vm"],
                 dir: LOCAL_WORKTREE
             }
         }
