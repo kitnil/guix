@@ -253,7 +253,7 @@ sound server.")
 (define-public pavucontrol
   (package
     (name "pavucontrol")
-    (version "4.0")
+    (version "3.0")
     (source (origin
              (method url-fetch)
              (uri (string-append
@@ -262,7 +262,7 @@ sound server.")
                    ".tar.xz"))
              (sha256
               (base32
-               "1qhlkl3g8d7h72xjskii3g1l7la2cavwp69909pzmbi2jyn5pi4g"))))
+               "14486c6lmmirkhscbfygz114f6yzf97h35n3h3pdr27w4mdfmlmk"))))
     (build-system glib-or-gtk-build-system)
     (inputs
      `(("adwaita-icon-theme" ,adwaita-icon-theme)          ;hard-coded theme
@@ -319,7 +319,7 @@ sinks.")
 (define-public pulsemixer
   (package
     (name "pulsemixer")
-    (version "1.5.1")
+    (version "1.4.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -328,7 +328,7 @@ sinks.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1jagx9zmz5pfsld8y2rj2kqg6ww9f6vqiawfy3vhqc49x3xx92p4"))))
+                "0l5zawv36d46sj3k31k5w6imnnxzyn62r83wdhr7fp5mi3ls1h5x"))))
     (build-system python-build-system)
     (arguments
      `(#:phases
