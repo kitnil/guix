@@ -28,6 +28,7 @@
   #:use-module (guix import json)
   #:use-module (guix import utils)
   #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (guix memoization)
   #:use-module (guix monads)
   #:use-module (guix packages)
   #:use-module (guix upstream)
@@ -110,6 +111,8 @@ record or #f if it was not found."
              (let ((versions (or (assoc-ref json "versions") '#())))
                (json->crate `(,@alist
                               ("actual_versions" . ,versions))))))))
+
+(define lookup-crate* (memoize lookup-crate))
 
 (define (crate-version-dependencies version)
   "Return the list of <crate-dependency> records of VERSION, a
@@ -216,7 +219,7 @@ latest version of CRATE-NAME."
         (eq? (crate-dependency-kind dependency) 'normal)))
 
   (define crate
-    (lookup-crate crate-name))
+    (lookup-crate* crate-name))
 
   (define version-number
     (or version
@@ -238,7 +241,7 @@ latest version of CRATE-NAME."
   (define (sort-map-dependencies deps)
     (sort (map (lambda (dep)
                  (let* ((name (crate-dependency-id dep))
-                        (crate (lookup-crate name))
+                        (crate (lookup-crate* name))
                         (req (crate-dependency-requirement dep))
                         (ver (find-version crate req)))
                    (list name
@@ -267,7 +270,7 @@ latest version of CRATE-NAME."
 
 (define* (crate-recursive-import crate-name #:key version)
   (recursive-import crate-name
-                    #:repo->guix-package crate->guix-package
+                    #:repo->guix-package (memoize crate->guix-package)
                     #:version version
                     #:guix-name crate-name->package-name))
 
