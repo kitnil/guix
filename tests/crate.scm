@@ -279,7 +279,7 @@
              (_ (error "Unexpected URL: " url)))))
 
         (match (crate->guix-package "foo")
-          ((define-public rust-foo-1.0.0
+          ((define-public rust-foo-1.0
              (package (name "rust-foo")
                       (version "1.0.0")
                       (source
@@ -295,7 +295,7 @@
                        ('quasiquote
                         (#:skip-build? #t
                          #:cargo-inputs
-                         (("rust-leaf-alice-1.0.0" ('unquote rust-leaf-alice-1.0.0))))))
+                         (("rust-leaf-alice" ('unquote rust-leaf-alice-1.0))))))
                       (home-page "http://example.com")
                       (synopsis "summary")
                       (description "summary")
@@ -358,7 +358,7 @@
              (_ (error "Unexpected URL: " url)))))
         (match (crate-recursive-import "root")
           ;; rust-intermediate-2 has no dependency on the rust-leaf-alice package, so this is a valid ordering
-          (((define-public rust-leaf-alice-1.0.0
+          (((define-public rust-leaf-alice-1.0
               (package
                 (name "rust-leaf-alice")
                 (version (?  string? ver))
@@ -377,7 +377,7 @@
                 (synopsis "summary")
                 (description "summary")
                 (license (list license:expat license:asl2.0))))
-            (define-public rust-leaf-bob-1.0.0
+            (define-public rust-leaf-bob-1.0
               (package
                 (name "rust-leaf-bob")
                 (version (?  string? ver))
@@ -396,7 +396,7 @@
                 (synopsis "summary")
                 (description "summary")
                 (license (list license:expat license:asl2.0))))
-            (define-public rust-intermediate-2-1.0.0
+            (define-public rust-intermediate-2-1.0
               (package
                 (name "rust-intermediate-2")
                 (version (?  string? ver))
@@ -413,13 +413,13 @@
                 (arguments
                  ('quasiquote (#:skip-build? #t
                                #:cargo-inputs
-                               (("rust-leaf-bob-1.0.0"
+                               (("rust-leaf-bob"
                                  ('unquote rust-leaf-bob-1.0.0))))))
                 (home-page "http://example.com")
                 (synopsis "summary")
                 (description "summary")
                 (license (list license:expat license:asl2.0))))
-            (define-public rust-intermediate-1-1.0.0
+            (define-public rust-intermediate-1-1.0
               (package
                 (name "rust-intermediate-1")
                 (version (?  string? ver))
@@ -436,17 +436,17 @@
                 (arguments
                  ('quasiquote (#:skip-build? #t
                                #:cargo-inputs
-                               (("rust-intermediate-2-1.0.0"
-                                 ,rust-intermediate-2-1.0.0)
-                                ("rust-leaf-alice-1.0.0"
-                                 ('unquote rust-leaf-alice-1.0.0))
-                                ("rust-leaf-bob-1.0.0"
-                                 ('unquote rust-leaf-bob-1.0.0))))))
+                               (("rust-intermediate-2"
+                                 ,rust-intermediate-2-1.0)
+                                ("rust-leaf-alice"
+                                 ('unquote rust-leaf-alice-1.0))
+                                ("rust-leaf-bob"
+                                 ('unquote rust-leaf-bob-1.0))))))
                 (home-page "http://example.com")
                 (synopsis "summary")
                 (description "summary")
                 (license (list license:expat license:asl2.0))))
-            (define-public rust-root-1.0.0
+            (define-public rust-root-1.0
               (package
                 (name "rust-root")
                 (version (?  string? ver))
@@ -463,14 +463,14 @@
                 (arguments
                  ('quasiquote (#:skip-build?
                                #t #:cargo-inputs
-                               (("rust-intermediate-1-1.0.0"
-                                 ('unquote rust-intermediate-1-1.0.0))
-                                ("rust-intermediate-2-1.0.0"
-                                 ('unquote rust-intermediate-2-1.0.0))
-                                ("rust-leaf-alice-1.0.0"
-                                 ('unquote rust-leaf-alice-1.0.0))
-                                ("rust-leaf-bob-1.0.0"
-                                 ('unquote rust-leaf-bob-1.0.0))))))
+                               (("rust-intermediate-1"
+                                 ('unquote rust-intermediate-1-1.0))
+                                ("rust-intermediate-2"
+                                 ('unquote rust-intermediate-2-1.0))
+                                ("rust-leaf-alice"
+                                 ('unquote rust-leaf-alice-1.0))
+                                ("rust-leaf-bob"
+                                 ('unquote rust-leaf-bob-1.0))))))
                 (home-page "http://example.com")
                 (synopsis "summary")
                 (description "summary")
