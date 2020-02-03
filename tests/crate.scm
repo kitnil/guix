@@ -461,8 +461,7 @@
                      (?  string? hash)))))
                 (build-system cargo-build-system)
                 (arguments
-                 ('quasiquote (#:skip-build?
-                               #t #:cargo-inputs
+                 ('quasiquote (#:cargo-inputs
                                (("rust-intermediate-1"
                                  ('unquote rust-intermediate-1-1.0))
                                 ("rust-intermediate-2"
