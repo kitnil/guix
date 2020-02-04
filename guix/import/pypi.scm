@@ -7,6 +7,7 @@
 ;;; Copyright © 2019 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2020 Lars-Dominik Braun <ldb@leibniz-psychology.org>
+;;; Copyright © 2020 Martin Becze <mjbecze@riseup.net>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -468,7 +469,7 @@ VERSION, SOURCE-URL, HOME-PAGE, SYNOPSIS, DESCRIPTION, and LICENSE."
 
 (define pypi->guix-package
   (memoize
-   (lambda* (package-name)
+   (lambda* (package-name #:key repo version)
      "Fetch the metadata for PACKAGE-NAME from pypi.org, and return the
 `package' s-expression corresponding to that package, or #f on failure."
      (let* ((project (pypi-fetch package-name))
@@ -492,9 +493,8 @@ VERSION, SOURCE-URL, HOME-PAGE, SYNOPSIS, DESCRIPTION, and LICENSE."
                                (project-info-license info)))))))))
 
 (define (pypi-recursive-import package-name)
-  (recursive-import package-name #f
-                    #:repo->guix-package (lambda (name repo)
-                                           (pypi->guix-package name))
+  (recursive-import package-name
+                    #:repo->guix-package pypi->guix-package
                     #:guix-name python->package-name))
 
 (define (string->license str)
