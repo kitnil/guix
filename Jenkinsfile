@@ -59,9 +59,10 @@ env GUIX_PACKAGE_PATH= guix environment --pure guix                             
                 }
             }
         }
-        stage('Trigger dotfiles job') {
+        stage('Trigger jobs') {
             steps {
                 build job: "../../wigust/dotfiles/master"
+                build job: "../../nix/maintenance/wip-local"
             }
         }
     }
