@@ -1,6 +1,7 @@
+List<String> node_labels = ["guix", "guix nixbld", "guix vm"]
+
 String LOCAL_WORKTREE = "/home/oleg/src/guix"
 String MASTER_WORKTREE = "${LOCAL_WORKTREE}-master"
-
 List<String> build_command = [
     "set -e -x",
     "./bootstrap",
@@ -8,19 +9,22 @@ List<String> build_command = [
     "make"
 ]
 List<String> packages = ["help2man", "guile-sqlite3", "guile-gcrypt"]
-String BUILD_SCRIPT = """
-#!/bin/sh
-guix environment --pure guix --ad-hoc ${packages.join(" ")} -- sh -c '${build_command.join("; ")}'
-"""
+String BUILD_COMMAND = """sh -c '${build_command.join("; ")}'"""
+String BUILD_SCRIPT = [
+    "guix", "environment", "--pure", "guix", "--ad-hoc", packages.join(' '),
+    "--", BUILD_COMMAND
+].join(" ")
 
 String GIT_PULL_REMOTE = "upstream"
 String GUIX_PULL_BRANCH = "wip-local"
 String GUIX_CHANNELS_FILE = "${LOCAL_WORKTREE}/channels.scm"
-String GUIX_PULL_COMMAND = "guix pull --branch=${GUIX_PULL_BRANCH} --channels=${GUIX_CHANNELS_FILE}"
+List<String> GUIX_PULL_ARGS = [
+    "--branch=${GUIX_PULL_BRANCH}",
+    "--channels=${GUIX_CHANNELS_FILE}"
+]
+String GUIX_PULL_COMMAND = "guix pull ${GUIX_PULL_ARGS.join(' ')}"
 String GIT_PULL_COMMAND = "git pull --rebase ${GIT_PULL_REMOTE}"
 String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
-
-List<String> node_labels = ["guix", "guix nixbld", "guix vm"]
 
 pipeline {
     agent { label "master" }
