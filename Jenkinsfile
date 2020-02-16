@@ -24,6 +24,9 @@ String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
 pipeline {
     agent { label "master" }
     environment { GUIX_PACKAGE_PATH = "" }
+    triggers {
+        cron("H 14 * * 1-5")
+    }
     stages {
         stage("Invoking git clone") {
             steps {
