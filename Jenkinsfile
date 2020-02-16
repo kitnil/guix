@@ -15,14 +15,6 @@ String BUILD_SCRIPT = [
     "--", BUILD_COMMAND
 ].join(" ")
 
-String GIT_PULL_REMOTE = "upstream"
-String GUIX_PULL_BRANCH = "wip-local"
-String GUIX_CHANNELS_FILE = "${LOCAL_WORKTREE}/channels.scm"
-List<String> GUIX_PULL_ARGS = [
-    "--branch=${GUIX_PULL_BRANCH}",
-    "--channels=${GUIX_CHANNELS_FILE}"
-]
-String GUIX_PULL_COMMAND = "guix pull ${GUIX_PULL_ARGS.join(' ')}"
 String GIT_PULL_COMMAND = "git pull --rebase ${GIT_PULL_REMOTE}"
 String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
 
@@ -30,47 +22,35 @@ pipeline {
     agent { label "master" }
     environment { GUIX_PACKAGE_PATH = "" }
     stages {
-        stage("Pulling from upstream Git") {
-            steps {
-                dir(LOCAL_WORKTREE) { sh GIT_PULL_COMMAND }
-                dir(MASTER_WORKTREE) { sh GIT_PULL_COMMAND }
-            }
-        }
-        stage("Cloning from local Git") {
+        stage("Invoking git clone") {
             steps {
                 parallelGitClone url: GUIX_GIT_REPOSITORY,
                 nodeLabels: node_labels, dir: LOCAL_WORKTREE,
                 branch: GUIX_PULL_BRANCH
             }
         }
-        stage("Invoking guix pull") {
+        stage("Invoking git pull") {
             steps {
-                parallelSh cmd: GUIX_PULL_COMMAND, nodeLabels: node_labels
-            }
-        }
-        stage("Invoking guix pull as root") {
-            steps {
-                parallelSh cmd: "sudo -i ${GUIX_PULL_COMMAND}",
-                nodeLabels: node_labels
-            }
-        }
-        stage("Building from Git") {
-            steps {
-                parallelSh cmd: BUILD_SCRIPT,
-                nodeLabels: node_labels, dir: LOCAL_WORKTREE
-            }
-        }
-        stage("Building from master") {
-            steps {
-                dir(MASTER_WORKTREE) {
-                    sh BUILD_SCRIPT
-                }
+                dir(LOCAL_WORKTREE) { sh GIT_PULL_COMMAND }
+                dir(MASTER_WORKTREE) { sh GIT_PULL_COMMAND }
             }
         }
         stage('Trigger jobs') {
             steps {
                 build job: "../../wigust/dotfiles/master"
-                build job: "../../nix/maintenance/wip-local"
+            }
+        }
+        stage("Build local worktree") {
+            steps {
+                parallelSh cmd: BUILD_SCRIPT,
+                nodeLabels: node_labels, dir: LOCAL_WORKTREE
+            }
+        }
+        stage("Build master worktree") {
+            steps {
+                dir(MASTER_WORKTREE) {
+                    sh BUILD_SCRIPT
+                }
             }
         }
     }
