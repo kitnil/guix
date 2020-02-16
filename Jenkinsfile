@@ -15,7 +15,10 @@ String BUILD_SCRIPT = [
     "--", BUILD_COMMAND
 ].join(" ")
 
-String GIT_PULL_COMMAND = "git pull --rebase ${GIT_PULL_REMOTE}"
+
+String GUIX_GIT_PULL_REMOTE = "upstream"
+String GUIX_GIT_PULL_BRANCH = "wip-local"
+String GUIX_GIT_PULL_COMMAND = "git pull --rebase ${GUIX_GIT_PULL_REMOTE}"
 String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
 
 pipeline {
@@ -26,13 +29,13 @@ pipeline {
             steps {
                 parallelGitClone url: GUIX_GIT_REPOSITORY,
                 nodeLabels: node_labels, dir: LOCAL_WORKTREE,
-                branch: GUIX_PULL_BRANCH
+                branch: GUIX_GIT_PULL_BRANCH
             }
         }
         stage("Invoking git pull") {
             steps {
-                dir(LOCAL_WORKTREE) { sh GIT_PULL_COMMAND }
-                dir(MASTER_WORKTREE) { sh GIT_PULL_COMMAND }
+                dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
+                dir(MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
             }
         }
         stage('Trigger jobs') {
