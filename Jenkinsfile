@@ -27,6 +27,10 @@ pipeline {
     triggers {
         cron("H 14 * * 1-5")
     }
+    parameters {
+        booleanParam name: "INVOKE_GIT_PULL", defaultValue: true,
+        description: 'Update Guix Git repository'
+    }
     stages {
         stage("Invoking git clone") {
             steps {
@@ -36,6 +40,7 @@ pipeline {
             }
         }
         stage("Invoking git pull") {
+            when { expression { params.INVOKE_GIT_PULL } }
             steps {
                 dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
                 dir(MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
