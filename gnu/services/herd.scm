@@ -55,7 +55,8 @@
             load-services
             load-services/safe
             start-service
-            stop-service))
+            stop-service
+            restart-service))
 
 ;;; Commentary:
 ;;;
@@ -270,6 +271,10 @@ when passed a service with an already-registered name."
 
 (define (stop-service name)
   (with-shepherd-action name ('stop) result
+    result))
+
+(define (restart-service name)
+  (with-shepherd-action name ('restart) result
     result))
 
 ;; Local Variables:
