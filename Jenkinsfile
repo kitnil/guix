@@ -48,13 +48,15 @@ pipeline {
         }
         stage('Trigger jobs') {
             steps {
-                build job: "../../wigust/dotfiles/master"
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    build job: "../../wigust/dotfiles/master"
+                }
             }
         }
         stage("Build local worktree") {
             steps {
-                parallelSh cmd: BUILD_SCRIPT,
-                nodeLabels: node_labels, dir: LOCAL_WORKTREE
+                parallelSh (cmd: BUILD_SCRIPT, nodeLabels: node_labels,
+                            dir: LOCAL_WORKTREE)
             }
         }
         stage("Build master worktree") {
