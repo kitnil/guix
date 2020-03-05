@@ -1,0 +1,190 @@
+                                                                                                -*- mode: org -*-
+#+TITLE: GNU Guix Support for the Hurd
+
+* Help with the Hurd
+
+In his talk @FOSDEM17
+
+    https://fosdem.org/2017/schedule/event/guixhurd/
+    https://fosdem.org/2017/schedule/event/guixhurd/attachments/slides/1850/export/events/attachments/guixhurd/slides/1850/guix_to_hurd_fosdem_2017.pdf
+
+Manolis calls for help to get the Hurd supported on Guix.  A lot of work
+has been done.  Some bigger things remains, but there is also a lot of
+small, simple things to be fixed.
+
+On Guix Days 2020, Efraim and others resurrect building
+bootstrap-binaries for the Hurd
+
+    https://gitlab.com/Efraim/guix  @wip-hurd-bootstrap
+
+Later, development moved to savannah `wip-boot' and janneke
+also has some experimental stuff
+
+    https://gitlab.com/janneke/guix.git  @wip-hurd-system
+
+* Setup Guix build environment on Debian/Hurd
+
+** Get installed IMAGE!
+
+wget http://cdimage.debian.org/cdimage/ports/latest/hurd-i386/debian-hurd.img.tar.gz
+tar xf debian-hurd.img.tar debian-hurd.img.tar.gz
+
+guix environment --ad-hoc qemu parted
+
+parted debian-hurd-20200101.img -- print
+qemu-img resize debian-hurd-20200101.img 10G
+parted debian-hurd-20200101.img -- resizepart 2 100%
+sudo losetup -o $((512*1953792)) /dev/loop0 debian-hurd-20200101.img
+sudo resize2fs /dev/loop0
+sudo losetup -d /dev/loop0
+
+** Run the HURD
+qemu-system-i386 -enable-kvm -drive file=debian-hurd-20200101.img,cache=writeback -m 4G -net user,hostfwd=tcp:127.0.0.1:2223-:22 -net nic
+
+*** [@hurd] Create user
+
+adduser guix
+adduser guix sudo
+
+*** [@Guix System]: Add to .ssh/config
+Host hurd
+   HostName localhost
+   User guix
+   Port 2223
+   ForwardAgent yes
+
+ssh-keygen -R [localhost]:2223
+ssh-copy-id hurd
+
+*** [@Guix System] Build bootstrap binaries
+
+This is now optional, bootstrap binaries are available on core-updates
+
+**** Clone Guix git
+    guix environment guix
+    mkdir src
+    cd src
+    git config --global url."git+ssh://git.sv.gnu.org/srv/git/".insteadOf gnu:
+    git clone gnu:guix
+    cd guix
+
+**** Checkout Hurd development (wip-hurd)
+    git checkout -b wip-hurd origin/wip-hurd
+    ./bootstrap
+    ./configure --localstatedir=/var --sysconfdir=/etc
+
+    ./pre-inst-env guix build --target=i586-pc-gnu bootstrap-tarballs
+    /gnu/store/lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0
+               lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0
+
+    ssh hurd mkdir -p var/hurd/gnu
+    for i in /gnu/store/lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0/*; do \
+        echo $i; guix hash $i; done
+    mkdir -p gnu/packages/bootstrap/i586-gnu/20200326
+    tar xf /gnu/store/lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0/static-binaries-0-i586-pc-gnu.tar.xz --strip=2 -C gnu/packages/bootstrap/i586-gnu/20200326 ./bin/{bash,mkdir,tar,xz}
+    for i in gnu/packages/bootstrap/i586-gnu/20200326/{bash,mkdir,tar,xz}; do \
+        echo $i; guix hash -r $i; done
+    scp -r /gnu/store/lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0/  hurd:var/hurd/gnu/
+
+**** Publish Hurd bootstrap binaries
+     ssh lilypond.org mkdir -p public_html/guix/i586-gnu/20200326
+     scp gnu/packages/bootstrap/i586-gnu/20200326/{bash,mkdir,tar,xz} lilypond.org:public_html/guix/i586-gnu/20200326
+     scp /gnu/store/lhca65c997pvic5cfrpm0dasniwqlg2a-bootstrap-tarballs-0/* lilypond.org:public_html/guix/i586-gnu/20200326/
+
+*** [@Hurd] Prepare to build Guix
+
+**** Build Guix from git
+    sudo apt-get update
+    sudo apt-get upgrade
+
+**** Add Debian build dependencies
+    sudo apt-get install build-essential dh-autoreconf dh-systemd autotools-dev git guile-2.2-dev guile-gcrypt guile-git guile-gnutls guile-json guile-sqlite3  graphviz help2man libbz2-dev libgcrypt20-dev libsqlite3-dev libssh-dev texinfo
+
+**** Build missing dependencies
+    mkdir src
+    cd src
+    apt-get source --download guile-ssh
+    cd guile-ssh-0.11.3
+    sed -i 's/dh_auto_test /true # dh_auto_test /' debian/rules
+    dpkg-buildpackage -uc
+    cd ..
+    sudo dpkg -i *.deb
+
+**** Checkout Hurd development
+    git config --global url."git+ssh://git.sv.gnu.org/srv/git/".insteadOf gnu:
+    git clone gnu:guix
+    cd guix
+    git checkout -b wip-hurd origin/wip-hurd
+
+    ./bootstrap
+    ./configure --with-courage
+    make
+
+*** Prepare to start guix-daemon
+
+     sudo groupadd --system guixbuild
+     for i in `seq -w 1 10`;
+       do
+         sudo useradd -g guixbuild -G guixbuild      \
+                 -d /var/empty -s `which nologin`    \
+                 -c "Guix build user $i" --system    \
+                 guixbuilder$i;
+       done
+
+     sudo ./pre-inst-env guix archive --authorize < etc/substitutes/ci.guix.gnu.org.pub
+     sudo mkdir /var/guix
+
+* Native
+** [@Guix System] Start qemu
+    qemu-system-i386 -enable-kvm -drive file=debian-hurd-20170613.img,cache=writeback -m 4G -net user,hostfwd=tcp:127.0.0.1:2223-:22 -net nic
+
+** [@Hurd] Start daemon
+    sudo ./pre-inst-env guix-daemon --disable-chroot --build-users-group=guixbuild &
+
+** [@Hurd] build packages
+    ./pre-inst-env guix build hello --no-offload --verbosity=1
+
+** [@Hurd] build system
+    ./pre-inst-env guix build -e '(@@ (gnu system) %base-packages/hurd)' --no-offload
+
+More is not supported, a HACKy preview lives here
+
+    git remote add janneke https://gitlab.com/janneke/guix.git
+    git remote add janneke git@gitlab.com:janneke/guix.git
+    git fetch janneke
+    git checkout -b wip-hurd-system janneke/wip-hurd-system
+    ./pre-inst-env guix build -f gnu/system/examples/bare-hurd.tmpl --no-offload
+
+possibly we want to move towards building all %base-packages
+
+    ./pre-inst-env guix build -e '(@@ (gnu system) %base-packages)' --no-offload
+
+however that needs some work, notably the removal of linux-specific packages.
+
+Also it would like to build the system natively
+
+    ./pre-inst-env guix system init gnu/system/examples/bare-hurd.tmpl /
+
+but we would need a solution for qemu.
+
+* Cross
+** [@Guix System] Build vm
+    ./pre-inst-env guix build --target=i586-pc-gnu -e '(@@ (gnu system) %base-packages/hurd)'
+    ./pre-inst-env guix build --target=i586-pc-gnu grub-minimal
+    ./pre-inst-env guix build --target=i586-pc-gnu -f gnu/system/examples/bare-hurd.tmpl
+
+More is not supported, a HACKy preview lives here
+
+    git remote add janneke https://gitlab.com/janneke/guix.git
+    git remote add janneke git@gitlab.com:janneke/guix.git
+    git fetch janneke
+    git checkout -b wip-hurd-system janneke/wip-hurd-system
+    ./pre-inst-env guix system --target=i586-pc-gnu vm gnu/system/examples/bare-hurd.tmpl
+
+* Legalese
+Copyright © 2017, 2018, 2020 Jan (janneke) Nieuwenhuizen <janneke@gnu.org>
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
