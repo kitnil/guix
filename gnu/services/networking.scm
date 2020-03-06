@@ -41,6 +41,7 @@
   #:use-module (gnu packages bash)
   #:use-module (gnu packages connman)
   #:use-module (gnu packages freedesktop)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages tor)
   #:use-module (gnu packages usb-modeswitch)
@@ -218,7 +219,7 @@ fe80::1%lo0 apps.facebook.com\n")
 
      (shepherd-service
       (documentation "Set up networking via DHCP.")
-      (requirement '(user-processes udev))
+      (requirement `(user-processes ,@(if (hurd-target?) '() '(udev))))
 
       ;; XXX: Running with '-nw' ("no wait") avoids blocking for a minute when
       ;; networking is unavailable, but also means that the interface is not up

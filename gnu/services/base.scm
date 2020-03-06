@@ -10,7 +10,7 @@
 ;;; Copyright © 2019 Efraim Flashner <efraim@flashner.co.il>
 ;;; Copyright © 2019 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2019 John Soo <jsoo1@asu.edu>
-;;; Copyright © 2019 Jan (janneke) Nieuwenhuizen <janneke@gnu.org>
+;;; Copyright © 2019, 2020 Jan (janneke) Nieuwenhuizen <janneke@gnu.org>
 ;;; Copyright © 2020 Florian Pelz <pelzflorian@pelzflorian.de>
 ;;;
 ;;; This file is part of GNU Guix.
@@ -49,6 +49,7 @@
                 #:select (coreutils glibc glibc-utf8-locales))
   #:use-module (gnu packages package-management)
   #:use-module ((gnu packages gnupg) #:select (guile-gcrypt))
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages terminals)
   #:use-module ((gnu build file-systems)
@@ -175,7 +176,8 @@
             pam-limits-service-type
             pam-limits-service
 
-            %base-services))
+            %base-services
+            %base-services/hurd))
 
 ;;; Commentary:
 ;;;
@@ -430,7 +432,8 @@ FILE-SYSTEM."
                                  '((gnu build file-systems)))
            (shepherd-service
             (provision (list (file-system->shepherd-service-name file-system)))
-            (requirement `(root-file-system udev
+            (requirement `(root-file-system
+                           ,@(if (hurd-target?) '() '(udev))
                            ,@(map dependency->shepherd-service-name dependencies)))
             (documentation "Check, mount, and unmount the given file system.")
             (start #~(lambda args
@@ -2387,7 +2390,7 @@ network interface.")))
                                     #:key
                                     netmask gateway provision
                                     ;; Most interfaces require udev to be usable.
-                                    (requirement '(udev))
+                                    (requirement (if (hurd-target?) '() '(udev)))
                                     (name-servers '()))
   "Return a service that starts @var{interface} with address @var{ip}.  If
 @var{netmask} is true, use it as the network mask.  If @var{gateway} is true,
@@ -2450,6 +2453,23 @@ to handle."
         (service udev-service-type
                  (udev-configuration
                    (rules (list lvm2 fuse alsa-utils crda))))
+
+        (service special-files-service-type
+                 `(("/bin/sh" ,(file-append bash "/bin/sh"))
+                   ("/usr/bin/env" ,(file-append coreutils "/bin/env"))))))
+
+(define %base-services/hurd
+  ;; Convenience variable holding the basic services.
+  (list (service login-service-type)
+
+        (service static-networking-service-type
+                 (list (static-networking (interface "lo")
+                                          (ip "127.0.0.1")
+                                          (requirement '())
+                                          (provision '(loopback)))))
+        (syslog-service)
+        (service guix-service-type)
+        (service nscd-service-type)
 
         (service special-files-service-type
                  `(("/bin/sh" ,(file-append bash "/bin/sh"))
