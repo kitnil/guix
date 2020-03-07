@@ -34,6 +34,7 @@
   #:use-module (guix build-system perl)
   #:use-module (gnu packages docbook)
   #:use-module (gnu packages emacs)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages libunistring)
   #:use-module (gnu packages ncurses)
   #:use-module (gnu packages perl)
@@ -106,7 +107,9 @@
                #t)))))
 
        ;; When tests fail, we want to know the details.
-       #:make-flags '("VERBOSE=yes")))
+       #:make-flags ,(if (hurd-target?)
+                         ''("VERBOSE=yes" "XFAIL_TESTS=test-raise")
+                         ''("VERBOSE=yes"))))
     (home-page "https://www.gnu.org/software/gettext/")
     (synopsis
      "Tools and documentation for translation (used to build other packages)")
