@@ -6,6 +6,7 @@
 ;;; Copyright © 2017 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2019 Meiyo Peng <meiyo.peng@gmail.com>
 ;;; Copyright © 2020 Danny Milosavljevic <dannym@scratchpost.org>
+;;; Copyright © 2020 Jan (janneke) Nieuwenhuizen <janneke@gnu.org>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -37,6 +38,7 @@
   #:use-module (gnu packages guile)
   #:use-module (gnu packages guile-xyz)
   #:use-module (gnu packages admin)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages package-management)
@@ -142,6 +144,7 @@
             %setuid-programs
             %sudoers-specification
             %base-packages
+            %base-packages/hurd
             %base-firmware))
 
 ;;; Commentary:
@@ -605,6 +608,44 @@ of PROVENANCE-SERVICE-TYPE to its services."
 
          bash-completion
 
+         ;; XXX: We don't use (canonical-package guile-2.2) here because that
+         ;; would create a collision in the global profile between the GMP
+         ;; variant propagated by 'guile-final' and the GMP variant propagated
+         ;; by 'gnutls', itself propagated by 'guix'.
+         guile-3.0
+         guile-readline guile-colorized
+
+         ;; The packages below are also in %FINAL-INPUTS, so take them from
+         ;; there to avoid duplication.
+         (map canonical-package
+              (list bash coreutils findutils grep sed
+                    diffutils patch gawk tar gzip bzip2 xz lzip))))
+
+(define %base-packages/hurd
+  ;; Default set of packages globally visible: minimal variant for the Hurd.
+  (cons* procps psmisc which less zile nano
+         pciutils
+         util-linux
+         inetutils
+         ;; isc-dhcp  ;fails, its build recipe makes it hard to patch
+         (@ (gnu packages admin) shadow)          ;for 'passwd'
+
+         ;; man-db ;avoid huge closure for now
+         info-reader                     ;the standalone Info reader (no Perl)
+
+         ;; The 'sudo' command is already in %SETUID-PROGRAMS, but we also
+         ;; want the other commands and the man pages (notably because
+         ;; auto-completion in Emacs shell relies on man pages.)
+         ;; sudo ;avoid huge build closure for now
+
+         e2fsprogs
+
+         bash-completion
+
+         ;; XXX: We don't use (canonical-package guile-2.2) here because that
+         ;; would create a collision in the global profile between the GMP
+         ;; variant propagated by 'guile-final' and the GMP variant propagated
+         ;; by 'gnutls', itself propagated by 'guix'.
          guile-3.0
          guile-readline guile-colorized
 
