@@ -92,6 +92,7 @@
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages haskell-apps)
   #:use-module (gnu packages haskell-xyz)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages libunwind)
   #:use-module (gnu packages libusb)
   #:use-module (gnu packages man)
@@ -1186,6 +1187,15 @@ providing the system administrator with some help in common tasks.")
                                               (assoc-ref %outputs "out")
                                               "/etc/bash_completion.d"))
        #:phases (modify-phases %standard-phases
+                  ,@(if (hurd-target?)
+                        `((add-after 'unpack 'remove-broken-tests
+                            (lambda _
+                              ;; These fail on the Hurd.
+                              (rename-file "tests/ts/ipcs/headers" "tests-ts-ipcs-headers")
+                              (rename-file "tests/ts/fdisk/oddinput" "tests-ts-fdisk-oddinput")
+                              (rename-file "tests/ts/libmount/utils" "tests-ts-libmount-utils")
+                              #t)))
+                        '())
                   (add-before 'configure 'patch-build-scripts
                     (lambda* (#:key outputs #:allow-other-keys)
                       (substitute* "configure"
