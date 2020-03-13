@@ -1989,7 +1989,7 @@ item of @var{packages}."
   ;; Build users are part of the "kvm" group, so we can fearlessly make
   ;; /dev/kvm 660 (see <http://bugs.gnu.org/18994>, for background.)
   (udev-rule "90-kvm.rules"
-             "KERNEL==\"kvm\", GROUP=\"kvm\", MODE=\"0660\"\n"))
+             "KERNEL==\"kvm\", GROUP=\"kvm\", MODE=\"0666\"\n"))
 
 (define udev-shepherd-service
   ;; Return a <shepherd-service> for UDEV with RULES.
