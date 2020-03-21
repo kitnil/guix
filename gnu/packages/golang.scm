@@ -3492,3 +3492,30 @@ files.")
     (description "This package provides a Go library for ASCII table
 generation.")
     (license license:expat)))
+
+(define-public hostctl
+  (let ((commit "36bcea1861062db90b353d7c74fa1f209438e21f"))
+    (package
+      (name "hostctl")
+      (version (git-version "0.4.2" "1" commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/guumaster/hostctl")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0l70lh66gi3sjsqjci9hfpj2yd7svymmavjwkfgj92297cd65bdm"))))
+      (build-system go-build-system)
+      (arguments
+       '(#:import-path "github.com/guumaster/hostctl"))
+      (propagated-inputs
+       `(("go-github-cobra" ,go-github-cobra)
+         ("go-github-com-guumaster-tablewriter"
+          ,go-github-com-guumaster-tablewriter)))
+      (home-page "https://github.com/guumaster/hostctl/")
+      (synopsis "Program to manage /etc/hosts file")
+      (description "This tool gives you more control over the use of your hosts
+file. You can have multiple profiles and enable/disable as you need.")
+      (license license:expat))))
