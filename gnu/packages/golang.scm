@@ -3702,3 +3702,28 @@ suffix comparison, rather than the string-based or tree-based approaches.")
 applications as well as a program to generate applications and command
 files.")
     (license license:asl2.0)))
+
+(define-public go-github-com-guumaster-tablewriter
+  (package
+    (name "go-github-com-guumaster-tablewriter")
+    (version "0.0.4")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/guumaster/tablewriter")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "02r0n2b9yh3x8xyf48k17dxlwj234hlgjycylbjxi6qg08hfmz2x"))))
+    (build-system go-build-system)
+    (arguments
+     '(#:import-path "github.com/guumaster/tablewriter"))
+    (propagated-inputs
+     `(("go-github.com-mattn-go-runewidth"
+        ,go-github.com-mattn-go-runewidth)))
+    (home-page "https://github.com/guumaster/tablewriter/")
+    (synopsis "Generate ASCII table on the fly")
+    (description "This package provides a Go library for ASCII table
+generation.")
+    (license license:expat)))
