@@ -3442,3 +3442,28 @@ efficient space usage.")
 based on murmurhash.")
     (home-page "https://github.com/willf/bloom")
     (license license:bsd-2)))
+
+(define-public go-github-cobra
+  (package
+    (name "go-github-cobra")
+    (version "0.0.6")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/spf13/cobra")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0rj059zvj8bzzzig7pnhxw9cgbkcq9w3pwzvsjba2a6vqal131vr"))))
+    (build-system go-build-system)
+    (arguments
+     '(#:import-path "github.com/spf13/cobra"))
+    (propagated-inputs
+     `(("go-github-com-spf13-pflag", go-github-com-spf13-pflag)))
+    (home-page "https://github.com/spf13/cobra/")
+    (synopsis "Commander for modern Go CLI interactions")
+    (description "Cobra is both a library for creating powerful modern CLI
+applications as well as a program to generate applications and command
+files.")
+    (license license:asl2.0)))
