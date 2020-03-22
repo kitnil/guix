@@ -18,6 +18,7 @@
 ;;; Copyright © 2019 Brett Gilio <brettg@gnu.org>
 ;;; Copyright © 2020 Konrad Hinsen <konrad.hinsen@fastmail.net>
 ;;; Copyright © 2020 Dimakis Dimakakos <me@bendersteed.tech>
+;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;;
 ;;; This file is part of GNU Guix.
 ;;;
@@ -618,6 +619,40 @@ from other CLXes around the net.")
 
 (define-public ecl-clx
   (sbcl-package->ecl-package sbcl-clx))
+
+(define-public sbcl-clx-truetype
+  (package
+    (name "sbcl-clx-truetype")
+    (version "2016-08-25")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "http://beta.quicklisp.org/archive/clx-truetype/" version
+             "/clx-truetype-" (string-delete #\- version) "-git.tgz"))
+       (sha256
+        (base32
+         "0ndy067rg9w6636gxwlpnw7f3ck9nrnjb03444pprik9r3c9in67"))
+       (modules '((guix build utils)))
+       (snippet
+        '(begin
+           (substitute* "package.lisp"
+             ((":export") ":export\n   :+font-cache-filename+"))
+           #t))))
+    (build-system asdf-build-system/sbcl)
+    (inputs
+     `(("clx" ,sbcl-clx)
+       ("zpb-ttf" ,sbcl-zpb-ttf)
+       ("cl-vectors" ,sbcl-cl-vectors)
+       ("cl-paths-ttf" ,sbcl-cl-paths-ttf)
+       ("cl-fad" ,sbcl-cl-fad)
+       ("cl-store" ,sbcl-cl-store)
+       ("trivial-features" ,sbcl-trivial-features)))
+    (home-page "https://github.com/filonenko-mikhail/clx-truetype/")
+    (synopsis "Antialiased TrueType font rendering using CLX and XRender")
+    (description "CLX-TrueType is pure common lisp solution for
+antialiased TrueType font rendering using CLX and XRender extension.")
+    (license license:expat)))
 
 (define-public sbcl-cl-ppcre-unicode
   (package (inherit sbcl-cl-ppcre)
