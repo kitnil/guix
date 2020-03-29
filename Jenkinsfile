@@ -42,7 +42,7 @@ pipeline {
         stage("Invoking git pull") {
             when { expression { params.INVOKE_GIT_PULL } }
             steps {
-                dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
+                // dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
                 dir(MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
             }
         }
