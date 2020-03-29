@@ -2,6 +2,7 @@ List<String> node_labels = ["guix", "guix nixbld", "guix vm"]
 
 String LOCAL_WORKTREE = "/home/oleg/src/guix"
 String MASTER_WORKTREE = "${LOCAL_WORKTREE}-master"
+String LOCAL_MASTER_WORKTREE = "/home/oleg/src/guix-wip-local-master"
 List<String> build_command = [
     "set -e -x",
     "./bootstrap",
@@ -43,6 +44,7 @@ pipeline {
             when { expression { params.INVOKE_GIT_PULL } }
             steps {
                 // dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
+                dir(LOCAL_MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
                 dir(MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
             }
         }
@@ -59,9 +61,12 @@ pipeline {
                             dir: LOCAL_WORKTREE)
             }
         }
-        stage("Build master worktree") {
+        stage("Build master and local master worktree") {
             steps {
                 dir(MASTER_WORKTREE) {
+                    sh BUILD_SCRIPT
+                }
+                dir(LOCAL_MASTER_WORKTREE) {
                     sh BUILD_SCRIPT
                 }
             }
