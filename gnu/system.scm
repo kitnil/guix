@@ -486,7 +486,9 @@ value of the SYSTEM-SERVICE-TYPE service."
                           (profile-derivation
                            (packages->manifest
                             (cons kernel modules))
-                           #:hooks (list linux-module-database)))
+                           #:hooks (if (pair? (operating-system-initrd-modules os))
+                                       (list linux-module-database)
+                                       '())))
                          (initrd -> (operating-system-initrd-file os))
                          (params    (operating-system-boot-parameters-file os)))
       (return `(("kernel" ,kernel)
