@@ -307,29 +307,26 @@ gitignore rules.")
         (method url-fetch)
         (uri (crate-uri "cbindgen" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "13jzbmjz1bmmfr0i80hw6ar484mgabx3hbpb2ynhk0ddqi0yr58m"))))
+         (base32
+          "13jzbmjz1bmmfr0i80hw6ar484mgabx3hbpb2ynhk0ddqi0yr58m"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-log" ,rust-log-0.4)
-         ("rust-toml" ,rust-toml-0.5)
-         ("rust-proc-macro2" ,rust-proc-macro2-1.0)
-         ("rust-serde" ,rust-serde-1.0)
-         ("rust-syn" ,rust-syn-1.0)
-         ("rust-quote" ,rust-quote-1.0)
-         ("rust-serde-json" ,rust-serde-json-1.0)
-         ("rust-clap" ,rust-clap-2)
-         ("rust-tempfile" ,rust-tempfile-3.1))))
+     `(#:cargo-inputs
+       (("rust-log" ,rust-log-0.4)
+        ("rust-toml" ,rust-toml-0.5)
+        ("rust-proc-macro2" ,rust-proc-macro2-1.0)
+        ("rust-serde" ,rust-serde-1.0)
+        ("rust-syn" ,rust-syn-1.0)
+        ("rust-quote" ,rust-quote-1.0)
+        ("rust-serde-json" ,rust-serde-json-1.0)
+        ("rust-clap" ,rust-clap-2)
+        ("rust-tempfile" ,rust-tempfile-3.1))))
     (home-page "https://github.com/eqrion/cbindgen/")
-    (synopsis
-      "A tool for generating C bindings to Rust code.")
+    (synopsis "Tool for generating C bindings to Rust code")
     (description
-      "This package provides a tool for generating C bindings to Rust code.")
+     "This package provides a tool for generating C/C++ bindings to Rust code.")
     (license license:mpl2.0)))
 
 (define-public tokei
@@ -402,26 +399,26 @@ blanks grouped by language.")
         (method url-fetch)
         (uri (crate-uri "cargo-c" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1is72jm0r73pqx2g3h1n6lvrcirwd91mmajsmb3jjg4jnayfkp0w"))))
+         (base32
+          "1is72jm0r73pqx2g3h1n6lvrcirwd91mmajsmb3jjg4jnayfkp0w"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:cargo-inputs
-        (("rust-cbindgen" ,rust-cbindgen-0.12)
-         ("rust-pretty-env-logger"
-          ,rust-pretty-env-logger-0.3)
-         ("rust-structopt" ,rust-structopt-0.3)
-         ("rust-log" ,rust-log-0.4)
-         ("rust-toml" ,rust-toml-0.5)
-         ("rust-cargo-metadata" ,rust-cargo-metadata-0.9)
-         ("rust-serde" ,rust-serde-1.0)
-         ("rust-serde-derive" ,rust-serde-derive-1.0)
-         ("rust-regex" ,rust-regex-1.3))))
-    (home-page "http://github.com/lu-zero/cargo-c")
-    (synopsis
-      "Helper program to build and install c-like libraries")
+     `(#:cargo-inputs
+       (("rust-cbindgen" ,rust-cbindgen-0.12)
+        ("rust-pretty-env-logger" ,rust-pretty-env-logger-0.3)
+        ("rust-structopt" ,rust-structopt-0.3)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-toml" ,rust-toml-0.5)
+        ("rust-cargo-metadata" ,rust-cargo-metadata-0.9)
+        ("rust-serde" ,rust-serde-1.0)
+        ("rust-serde-derive" ,rust-serde-derive-1.0)
+        ("rust-regex" ,rust-regex-1.3))))
+    (home-page "https://github.com/lu-zero/cargo-c")
+    (synopsis "Build and install C-compatible libraries")
     (description
-      "Helper program to build and install c-like libraries")
+     "This package produces and installs a correct pkg-config file, a static
+library and a dynamic library, and a C header to be used by any C (and
+C-compatible) software.")
     (license license:expat)))

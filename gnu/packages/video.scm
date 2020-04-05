@@ -1124,10 +1124,8 @@ audio/video codec library.")
         `(delete "--enable-librav1e"
                  (delete "--enable-libdav1d"
                          (delete "--enable-libaom" ,flags))))))
-    (inputs (alist-delete "rav1e"
-                          (alist-delete "dav1d"
-                                        (alist-delete "libaom"
-                                                      (package-inputs ffmpeg)))))))
+    (inputs (fold alist-delete (package-inputs ffmpeg)
+                  '("rav1e" "dav1d" "libaom")))))
 
 (define-public ffmpeg-for-stepmania
   (hidden-package
