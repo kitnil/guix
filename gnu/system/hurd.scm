@@ -42,6 +42,7 @@
   #:use-module (gnu packages hurd)
   #:use-module (gnu packages less)
   #:use-module (gnu packages m4)
+  #:use-module (gnu packages package-management)
   #:use-module (gnu packages ssh)
   #:use-module (gnu packages version-control)
   #:use-module (gnu services)
@@ -78,8 +79,8 @@
 
 (define %base-packages/hurd
   (list hurd bash coreutils file findutils grep sed
-        guile-3.0 guile-colorized guile-readline
-        net-base inetutils less openssh shepherd which))
+        guile-3.0 guile-colorized guile-readline guix
+        inetutils less net-base openssh shepherd which))
 
 (define %base-services/hurd
   (list (service user-processes-service-type)
