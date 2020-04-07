@@ -209,6 +209,7 @@ fi\n"))
               #:bootcfg-drv grub.cfg
               #:bootloader grub-bootloader
               #:register-closures? #f
+              #:device-nodes 'hurd
               #:extra-directives hurd-directives))
 
 ;; Return this thunk so one can type "guix build -f gnu/system/hurd.scm".
