@@ -18,6 +18,7 @@
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (gnu system hurd)
+  #:use-module (srfi srfi-1)
   #:use-module (guix gexp)
   #:use-module (guix profiles)
   #:use-module (guix utils)
@@ -31,6 +32,10 @@
   #:use-module (gnu packages guile-xyz)
   #:use-module (gnu packages hurd)
   #:use-module (gnu packages less)
+  #:use-module (gnu services)
+  #:use-module (gnu services base)
+  #:use-module (gnu services hurd)
+  #:use-module (gnu system)
   #:use-module (gnu system vm)
   #:export (cross-hurd-image))
 
@@ -51,10 +56,32 @@
                       #:system system
                       #:target target))
 
+;; XXX: We will replace this by addding (gnu services shepherd).
+(define shepherd-configuration-file
+  (@@ (gnu services shepherd) shepherd-configuration-file))
+
 (define %base-packages/hurd
   (list hurd bash coreutils file findutils grep sed
         guile-3.0 guile-colorized guile-readline
-        net-base inetutils less which))
+        net-base inetutils less shepherd which))
+
+(define %base-services/hurd
+  (list (service user-processes-service-type)
+        (service hurd-console-service-type
+                 (hurd-console-configuration (hurd hurd)))
+        (service hurd-ttys-service-type
+                 (hurd-ttys-configuration (hurd hurd)))))
+
+(define %hurd-os
+  (operating-system
+    (host-name "guixygnu")
+    (bootloader #f)
+    (file-systems '())
+    (timezone "GNUrope")
+    (services %base-services/hurd)))
+
+(define (hurd-shepherd-services os)
+  (append-map hurd-service->shepherd-service (operating-system-services os)))
 
 (define* (cross-hurd-image #:key (hurd hurd) (gnumach gnumach))
   "Return a cross-built GNU/Hurd image."
@@ -136,6 +163,10 @@ if [ -f \"$GUIX_PROFILE/etc/profile\" ]; then
   . \"$GUIX_PROFILE/etc/profile\"
 fi\n"))
 
+  (define shepherd.conf
+    (with-parameters ((%current-target-system "i586-pc-gnu"))
+      (shepherd-configuration-file (hurd-shepherd-services %hurd-os))))
+
   (define hurd-directives
     `((directory "/servers")
       ,@(map (lambda (server)
@@ -199,6 +230,7 @@ fi\n"))
                                                        "i586-pc-gnu"))
                                       hurd)
                                     "/etc/ttys"))
+      ("/etc/shepherd.conf" -> ,shepherd.conf)
       ("/bin/sh" -> ,(file-append (with-parameters ((%current-target-system
                                                      "i586-pc-gnu"))
                                     bash)
@@ -213,13 +245,15 @@ fi\n"))
                          ("passwd" ,passwd)
                          ("group" ,group)
                          ("etc-profile" ,etc-profile)
-                         ("shadow" ,shadow))
+                         ("shadow" ,shadow)
+                         ("shepherd.conf" ,shepherd.conf))
               #:copy-inputs? #t
               #:os system-profile
               #:bootcfg-drv grub.cfg
               #:bootloader grub-bootloader
               #:register-closures? #f
               #:device-nodes 'hurd
+              #:disk-image-size (* 10 (expt 2 30)) ;10GiB
               #:extra-directives hurd-directives))
 
 ;; Return this thunk so one can type "guix build -f gnu/system/hurd.scm".

@@ -349,10 +349,13 @@ boot, since this cannot be done from GNU/Linux."
                          (apply invoke "settrans" "-c" node command))))
                     '#$translators)
 
-          ;; Start the oh-so-fancy console client.
-          (mkdir-p "/var/run")                    ;for the PID file
-          (invoke "console" "--daemonize" "-c" "/dev/vcs"
-                  "-d" "vga" "-d" "pc_kbd" "-d" "generic_speaker"))))
+          ;; Generate the ssh host keys.
+          (invoke "/run/current-system/profile/bin/ssh-keygen" "-A")
+          (mkdir-p "/var/run")                    ;for the PID files
+          ;; Hand over to the Shepherd
+          (false-if-exception (delete-file "/var/run/shepherd/socket"))
+          (invoke "/run/current-system/profile/bin/shepherd"
+                  "--config" "/etc/shepherd.conf"))))
 
   ;; FIXME: We want the program to use the cross-compiled Guile when
   ;; cross-compiling.  But why do we need to be explicit here?
@@ -469,7 +472,8 @@ fsysopts / --writable
 # MAKEDEV relies on pipes so this needs to be set up.
 settrans -c /servers/socket/1 /hurd/pflocal
 
-(cd /dev; MAKEDEV -D /dev std vcs tty{1,2,3,4,5,6})\n")))
+(cd /dev; MAKEDEV -D /dev std vcs tty{1,2,3,4,5,6})
+(cd /dev; MAKEDEV -D /dev ptyp{0,1,2,3})\n")))
 
                (substitute* "daemons/runsystem.hurd.sh"
                  (("export PATH")
