@@ -3237,30 +3237,25 @@ harness.")
         (method url-fetch)
         (uri (crate-uri "console" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1h765951c9mywff534f0191slazykmif4290g2yarcwhd2cg7q25"))))
+         (base32
+          "1h765951c9mywff534f0191slazykmif4290g2yarcwhd2cg7q25"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-unicode-width" ,rust-unicode-width-0.1)
-         ("rust-libc" ,rust-libc-0.2)
-         ("rust-termios" ,rust-termios-0.3)
-         ("rust-encode-unicode" ,rust-encode-unicode-0.3)
-         ("rust-winapi" ,rust-winapi-0.3)
-         ("rust-clicolors-control"
-          ,rust-clicolors-control-1.0)
-         ("rust-regex" ,rust-regex-1.3)
-         ("rust-lazy-static" ,rust-lazy-static-1))))
-    (home-page
-      "https://github.com/mitsuhiko/console")
-    (synopsis
-      "A terminal and console abstraction for Rust")
+     `(#:cargo-inputs
+       (("rust-unicode-width" ,rust-unicode-width-0.1)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-termios" ,rust-termios-0.3)
+        ("rust-encode-unicode" ,rust-encode-unicode-0.3)
+        ("rust-winapi" ,rust-winapi-0.3)
+        ("rust-clicolors-control" ,rust-clicolors-control-1.0)
+        ("rust-regex" ,rust-regex-1.3)
+        ("rust-lazy-static" ,rust-lazy-static-1))))
+    (home-page "https://github.com/mitsuhiko/console")
+    (synopsis "Terminal and console abstraction for Rust")
     (description
-      "This package provides a terminal and console abstraction for Rust")
+     "This package provides a terminal and console abstraction for Rust")
     (license license:expat)))
 
 (define-public rust-console-0.7
@@ -4255,23 +4250,23 @@ Code} (MAC) algorithms.")
         (method url-fetch)
         (uri (crate-uri "ctor" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1qgwkwyxishpp3wkbwq5i27zdxz539ii0sz129xj061ffnnfbia7"))))
+         (base32
+          "1qgwkwyxishpp3wkbwq5i27zdxz539ii0sz129xj061ffnnfbia7"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-syn" ,rust-syn-1.0)
-         ("rust-quote" ,rust-quote-1.0))))
-    (home-page
-      "https://github.com/mmastrac/rust-ctor")
-    (synopsis
-      "__attribute__((constructor)) for Rust")
+     `(#:skip-build? #t
+       #:cargo-inputs
+       (("rust-syn" ,rust-syn-1.0)
+        ("rust-quote" ,rust-quote-1.0))
+       ;#:cargo-development-inputs
+       ;(("rust-libc-print" ,rust-libc-print-0.1))
+       ))
+    (home-page "https://github.com/mmastrac/rust-ctor")
+    (synopsis "__attribute__((constructor)) for Rust")
     (description
-      "__attribute__((constructor)) for Rust")
+     "This package provides an @code{__attribute__((constructor))} for Rust.")
     (license (list license:asl2.0 license:expat))))
 
 (define-public rust-ctrlc-3.1
@@ -4450,18 +4445,29 @@ and arithmetic.")
         (method url-fetch)
         (uri (crate-uri "dav1d-sys" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1022czzp3s54r42x6rhr870w1fwzyp7b6qn0zirpz55zmqjpgnwa"))))
+         (base32
+          "1022czzp3s54r42x6rhr870w1fwzyp7b6qn0zirpz55zmqjpgnwa"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-pkg-config" ,rust-pkg-config-0.3)
-         ("rust-bindgen" ,rust-bindgen-0.52)
-         ("rust-metadeps" ,rust-metadeps-1.1))))
+     `(#:cargo-inputs
+       (("rust-pkg-config" ,rust-pkg-config-0.3)
+        ("rust-bindgen" ,rust-bindgen-0.52)
+        ("rust-metadeps" ,rust-metadeps-1.1))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'set-environmental-variable
+           (lambda* (#:key inputs #:allow-other-keys)
+             (let ((clang (assoc-ref inputs "libclang")))
+               (setenv "LIBCLANG_PATH"
+                       (string-append clang "/lib")))
+             #t)))))
+    (inputs
+     `(("dav1d" ,dav1d)
+       ("pkg-config" ,pkg-config)
+       ("libclang" ,clang)
+       ("llvm" ,llvm)))
     (home-page "https://github.com/rust-av/dav1d-rs")
     (synopsis "FFI bindings to dav1d")
     (description "FFI bindings to dav1d")
@@ -4963,21 +4969,18 @@ parameters, associated types, and type constraints.")
         (method url-fetch)
         (uri (crate-uri "draw_state" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "0lfng4fz9x7bwsmzv9r20ply10w0iid6vfcrhx292s6hw8vrbkrk"))))
+         (base32
+          "0lfng4fz9x7bwsmzv9r20ply10w0iid6vfcrhx292s6hw8vrbkrk"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-serde" ,rust-serde-1.0)
-         ("rust-bitflags" ,rust-bitflags-1))))
-    (home-page
-      "https://github.com/gfx-rs/draw_state")
+     `(#:cargo-inputs
+       (("rust-serde" ,rust-serde-1.0)
+        ("rust-bitflags" ,rust-bitflags-1))))
+    (home-page "https://github.com/gfx-rs/draw_state")
     (synopsis "Graphics state blocks for gfx-rs")
-    (description "Graphics state blocks for gfx-rs")
+    (description "Graphics state blocks for gfx-rs.")
     (license license:asl2.0)))
 
 (define-public rust-dtoa-0.4
@@ -5612,28 +5615,26 @@ is configured via an environment variable.")
         (method url-fetch)
         (uri (crate-uri "err-derive" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "0v6wxrshfpg7mwaxzq8jwxbfiyn7zk5rlm4m8kkrwh7dpf8nrx42"))))
+         (base32
+          "0v6wxrshfpg7mwaxzq8jwxbfiyn7zk5rlm4m8kkrwh7dpf8nrx42"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-synstructure" ,rust-synstructure-0.12)
-         ("rust-skeptic" ,rust-skeptic-0.13)
-         ("rust-proc-macro-error"
-          ,rust-proc-macro-error-0.4)
-         ("rust-proc-macro2" ,rust-proc-macro2-1.0)
-         ("rust-syn" ,rust-syn-1.0)
-         ("rust-rustversion" ,rust-rustversion-1.0)
-         ("rust-quote" ,rust-quote-1.0))))
-    (home-page
-      "https://gitlab.com/torkleyy/err-derive")
+     `(#:cargo-inputs
+       (("rust-synstructure" ,rust-synstructure-0.12)
+        ("rust-skeptic" ,rust-skeptic-0.13)
+        ("rust-proc-macro-error" ,rust-proc-macro-error-0.4)
+        ("rust-proc-macro2" ,rust-proc-macro2-1.0)
+        ("rust-syn" ,rust-syn-1.0)
+        ("rust-rustversion" ,rust-rustversion-1.0)
+        ("rust-quote" ,rust-quote-1.0))
+       #:cargo-development-inputs
+       (("rust-skeptic" ,rust-skeptic-0.13))))
+    (home-page "https://gitlab.com/torkleyy/err-derive")
     (synopsis "Derive macro for `std::error::Error`")
     (description
-      "Derive macro for `std::error::Error`")
+     "Derive macro for @code{std::error::Error}.")
     (license (list license:expat license:asl2.0))))
 
 (define-public rust-errno-0.2
@@ -5714,6 +5715,7 @@ is configured via an environment variable.")
 
 (define-public rust-error-chain-0.11
   (package
+    (inherit rust-error-chain-0.12)
     (name "rust-error-chain")
     (version "0.11.0")
     (source
@@ -5721,26 +5723,18 @@ is configured via an environment variable.")
         (method url-fetch)
         (uri (crate-uri "error-chain" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1wykkr0naizbkwxjwia1rch8xhwvgij9khqvjzs07mrmqifislgz"))))
-    (build-system cargo-build-system)
+         (base32
+          "1wykkr0naizbkwxjwia1rch8xhwvgij9khqvjzs07mrmqifislgz"))))
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-backtrace" ,rust-backtrace-0.3))))
-    (home-page
-      "https://github.com/rust-lang-nursery/error-chain")
-    (synopsis
-      "Yet another error boilerplate library.")
-    (description
-      "Yet another error boilerplate library.")
-    (license (list license:expat license:asl2.0))))
+     `(#:tests? #f      ; Not all test files included.
+       #:cargo-inputs
+       (("rust-backtrace" ,rust-backtrace-0.3))))))
 
 (define-public rust-error-chain-0.10
   (package
+    (inherit rust-error-chain-0.11)
     (name "rust-error-chain")
     (version "0.10.0")
     (source
@@ -5748,23 +5742,13 @@ is configured via an environment variable.")
         (method url-fetch)
         (uri (crate-uri "error-chain" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1y1gyj9g5c3k1nzkvxrgry8v9k86kcc585mczrm3qz019s35shyr"))))
-    (build-system cargo-build-system)
+         (base32
+          "1y1gyj9g5c3k1nzkvxrgry8v9k86kcc585mczrm3qz019s35shyr"))))
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-backtrace" ,rust-backtrace-0.3))))
-    (home-page
-      "https://github.com/rust-lang-nursery/error-chain")
-    (synopsis
-      "Yet another error boilerplate library.")
-    (description
-      "Yet another error boilerplate library.")
-    (license (list license:expat license:asl2.0))))
+     `(#:cargo-inputs
+       (("rust-backtrace" ,rust-backtrace-0.3))))))
 
 (define-public rust-euclid-0.20
   (package
@@ -5927,25 +5911,27 @@ provides implementations for @code{HashMap} and @code{HashSet}.")
         (method url-fetch)
         (uri (crate-uri "fern" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1anslk0hx9an4ypcaxqff080hgbcxm7ji7d4qf4f6qx1mkav16p6"))))
+         (base32
+          "1anslk0hx9an4ypcaxqff080hgbcxm7ji7d4qf4f6qx1mkav16p6"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:skip-build?
-        #t
-        #:cargo-inputs
-        (("rust-libc" ,rust-libc-0.2)
-         ("rust-reopen" ,rust-reopen-0.3)
-         ("rust-log" ,rust-log-0.4)
-         ("rust-chrono" ,rust-chrono-0.4)
-         ("rust-colored" ,rust-colored-1.9)
-         ("rust-syslog" ,rust-syslog-3.3)
-         ("rust-syslog" ,rust-syslog-4.0))))
+     `(#:cargo-inputs
+       (("rust-libc" ,rust-libc-0.2)
+        ("rust-reopen" ,rust-reopen-0.3)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-chrono" ,rust-chrono-0.4)
+        ("rust-colored" ,rust-colored-1.9)
+        ("rust-syslog" ,rust-syslog-3.3)
+        ("rust-syslog" ,rust-syslog-4.0))
+       #:cargo-development-inputs
+       (("rust-clap" ,rust-clap-2)
+        ("rust-tempdir" ,rust-tempdir-0.3))))
     (home-page "https://github.com/daboross/fern")
     (synopsis "Simple, efficient logging")
-    (description "Simple, efficient logging")
+    (description
+     "This package provides a simple, efficient logging system for Rust.")
     (license license:expat)))
 
 (define-public rust-filetime-0.2
