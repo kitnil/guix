@@ -349,9 +349,8 @@ boot, since this cannot be done from GNU/Linux."
                          (apply invoke "settrans" "-c" node command))))
                     '#$translators)
 
-          ;; Generate the ssh host keys.
-          (invoke "/run/current-system/profile/bin/ssh-keygen" "-A")
-          (mkdir-p "/var/run")                    ;for the PID files
+          ;; Activate the system
+          (invoke "/run/current-system/profile/bin/sh" "/boot/activation")
           ;; Hand over to the Shepherd
           (false-if-exception (delete-file "/var/run/shepherd/socket"))
           (invoke "/run/current-system/profile/bin/shepherd"

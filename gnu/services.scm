@@ -29,10 +29,12 @@
   #:use-module (guix describe)
   #:use-module (guix sets)
   #:use-module (guix ui)
-  #:use-module ((guix utils) #:select (source-properties->location))
+  #:use-module ((guix utils) #:select (source-properties->location
+                                       %current-target-system))
   #:use-module (guix modules)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages hurd)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-9 gnu)
@@ -517,6 +519,44 @@ ACTIVATION-SCRIPT-TYPE."
 
 (define (activation-script gexps)
   "Return the system's activation script, which evaluates GEXPS."
+
+  (program-file "activate.scm" (if (hurd-target?)
+                                   (hurd-activation-script gexps)
+                                   (gnu/linux-activation-script gexps))))
+
+(define (gnu/linux-activation-script gexps)
+  "Return a GNU/Linux system activation script, which evaluates GEXPS."
+
+  (define actions
+    (map (cut program-file "activate-service.scm" <>) gexps))
+
+  (with-imported-modules (source-module-closure
+                          '((gnu build activation)
+                            (guix build utils)))
+    #~(begin
+        (use-modules (gnu build activation)
+                     (guix build utils))
+
+        ;; Make sure the user accounting database exists.  If it
+        ;; does not exist, 'setutxent' does not create it and
+        ;; thus there is no accounting at all.
+        (close-port (open-file "/var/run/utmpx" "a0"))
+
+        ;; Same for 'wtmp', which is populated by mingetty et
+        ;; al.
+        (close-port (open-file "/var/log/wtmp" "a0"))
+
+        ;; Set up /run/current-system.  Among other things this
+        ;; sets up locales, which the activation snippets
+        ;; executed below may expect.
+        (activate-current-system)
+
+        ;; Run the services' activation snippets.
+        ;; TODO: Use 'load-compiled'.
+        (for-each primitive-load '#$actions))))
+
+(define (hurd-activation-script gexps)
+  "Return the Hurd activation script, which evaluates GEXPS."
   (define actions
     (map (cut program-file "activate-service.scm" <>) gexps))
 
@@ -528,23 +568,11 @@ ACTIVATION-SCRIPT-TYPE."
                       (use-modules (gnu build activation)
                                    (guix build utils))
 
-                      ;; Make sure the user accounting database exists.  If it
-                      ;; does not exist, 'setutxent' does not create it and
-                      ;; thus there is no accounting at all.
-                      (close-port (open-file "/var/run/utmpx" "a0"))
-
-                      ;; Same for 'wtmp', which is populated by mingetty et
-                      ;; al.
+                      (mkdir-p "/var/run") ;for the PID files
                       (mkdir-p "/var/log")
-                      (close-port (open-file "/var/log/wtmp" "a0"))
 
-                      ;; Set up /run/current-system.  Among other things this
-                      ;; sets up locales, which the activation snippets
-                      ;; executed below may expect.
-                      (activate-current-system)
-
-                      ;; Run the services' activation snippets.
-                      ;; TODO: Use 'load-compiled'.
+                      ;; XXX TODO
+                      ;; (activate-hurd-system)
                       (for-each primitive-load '#$actions)))))
 
 (define (gexps->activation-gexp gexps)
