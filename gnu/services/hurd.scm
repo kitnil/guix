@@ -30,6 +30,7 @@
   #:use-module (ice-9 match)
   #:export (hurd-console-configuration
             hurd-console-service-type
+            hurd-loopback-service-type
             hurd-service->shepherd-service
             hurd-ttys-configuration
             hurd-ttys-service-type))
@@ -48,6 +49,7 @@
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
       (($ <syslog-configuration>) (syslog-shepherd-service config))
+      (('loopback) (hurd-loopback-shepherd-service #f))
       (('user-processes) (user-processes-shepherd-service '()))
       (_ '()))))
 
@@ -126,6 +128,33 @@
    (compose concatenate)
    (extend first-of-two)
    (default-value (hurd-console-configuration))))
+
+
+;;;
+;;; Dummy hurd-loopback service, required for guix-daemon.
+;;;
+
+(define (hurd-loopback-shepherd-service _)
+  "Return the 'loopback' Shepherd service."
+
+  (list (shepherd-service
+         (documentation "Dummy for bootstrapping (gnu services) on the Hurd.")
+         (provision '(loopback))
+         (requirement '())
+         (start #~(const #t))
+         (stop #~(const #t))
+         (respawn? #f))))
+
+(define hurd-loopback-service-type
+  (service-type
+   (name 'loopback)
+   (extensions (list (service-extension shepherd-root-service-type
+                                        hurd-loopback-shepherd-service)))
+   (compose concatenate)
+   (extend first-of-two)
+   (default-value '(loopback)) ;canary for hurd-service->shepherd-service
+   (description "Dummy service to bootstrap (gnu services) on the
+Hurd.")))
 
 
 ;;;
