@@ -26,7 +26,8 @@
   #:use-module (guix records)
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
-  #:export (hurd-service->shepherd-service))
+  #:export (hurd-console-service-type
+            hurd-service->shepherd-service))
 
 ;;; Commentary:
 ;;;
@@ -38,9 +39,51 @@
 (define (hurd-service->shepherd-service service)
   (let ((config (service-value service)))
     (match config
+      (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (_ '()))))
 
 (define (first-of-two first second)
   first)
+
+
+;;;
+;;; Simple wrapper for <hurd>/bin/console.
+;;;
+
+(define-record-type* <hurd-console-configuration>
+  hurd-console-configuration make-hurd-console-configuration
+  hurd-console-configuration?
+  (hurd   hurd-console-configuration-hurd ;package
+          (default hurd)))
+
+(define (hurd-console-shepherd-service config)
+  "Return a <shepherd-service> for a Hurd console with CONFIG."
+
+  (define console-command
+    #~(list
+       (string-append #$(hurd-console-configuration-hurd config) "/bin/console")
+       "-c" "/dev/vcs"
+       "-d" "vga"
+       "-d" "pc_kbd"
+       "-d" "generic_speaker"))
+
+  (list (shepherd-service
+         (documentation "Hurd console.")
+         (provision '(console))
+         (requirement '())
+         (start #~(lambda _ (fork+exec-command #$console-command) #t))
+         (stop #~(make-kill-destructor)))))
+
+(define hurd-console-service-type
+  (service-type
+   (name 'console)
+   (description
+    "Run a hurd console, @command{console}.")
+   (extensions
+    (list (service-extension shepherd-root-service-type
+                             hurd-console-shepherd-service)))
+   (compose concatenate)
+   (extend first-of-two)
+   (default-value (hurd-console-configuration))))
 
 ;;; hurd.scm ends here
