@@ -26,8 +26,11 @@
   #:use-module (guix records)
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
-  #:export (hurd-console-service-type
-            hurd-service->shepherd-service))
+  #:export (hurd-console-configuration
+            hurd-console-service-type
+            hurd-service->shepherd-service
+            hurd-ttys-configuration
+            hurd-ttys-service-type))
 
 ;;; Commentary:
 ;;;
@@ -40,6 +43,7 @@
   (let ((config (service-value service)))
     (match config
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
+      (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
       (_ '()))))
 
 (define (first-of-two first second)
@@ -85,5 +89,42 @@
    (compose concatenate)
    (extend first-of-two)
    (default-value (hurd-console-configuration))))
+
+
+;;;
+;;; Simple wrapper for <hurd>/libexec/runttys.
+;;;
+
+(define-record-type* <hurd-ttys-configuration>
+  hurd-ttys-configuration make-hurd-ttys-configuration
+  hurd-ttys-configuration?
+  (hurd   hurd-ttys-configuration-hurd ;package
+          (default hurd)))
+
+(define (hurd-ttys-shepherd-service config)
+  "Return a <shepherd-service> for the Hurd ttys with CONFIG."
+
+  (define runttys-command
+    #~(list
+       (string-append #$(hurd-ttys-configuration-hurd config) "/libexec/runttys")))
+
+  (list (shepherd-service
+         (documentation "Hurd ttys.")
+         (provision '(ttys))
+         (requirement '(console))
+         (start #~(lambda _ (fork+exec-command #$runttys-command) #t))
+         (stop #~(make-kill-destructor)))))
+
+(define hurd-ttys-service-type
+  (service-type
+   (name 'tty)
+   (description
+    "Run a hurd ttys, @command{runttys}.")
+   (extensions
+    (list (service-extension shepherd-root-service-type
+                             hurd-ttys-shepherd-service)))
+   (compose concatenate)
+   (extend first-of-two)
+   (default-value (hurd-ttys-configuration))))
 
 ;;; hurd.scm ends here
