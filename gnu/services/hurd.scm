@@ -19,6 +19,7 @@
 (define-module (gnu services hurd)
   #:use-module (gnu packages hurd)
   #:use-module (gnu services)
+  #:use-module (gnu services base)
   #:use-module (gnu services shepherd)
   #:use-module (gnu system shadow)
   #:use-module (guix gexp)
@@ -42,6 +43,7 @@
 (define (hurd-service->shepherd-service service)
   (let ((config (service-value service)))
     (match config
+      (($ <guix-configuration>) (guix-shepherd-service config))
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
       (('user-processes) (user-processes-shepherd-service '()))
@@ -49,6 +51,17 @@
 
 (define (first-of-two first second)
   first)
+
+
+;;;
+;;; Bridge for guix-daemon.
+;;;
+
+(define <guix-configuration>
+  (@@ (gnu services base) <guix-configuration>))
+
+(define guix-shepherd-service
+  (@@ (gnu services base) guix-shepherd-service))
 
 
 ;;;
