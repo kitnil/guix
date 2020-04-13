@@ -26,6 +26,7 @@
   #:use-module (guix modules)
   #:use-module (guix records)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:export (hurd-console-configuration
             hurd-console-service-type
@@ -46,6 +47,7 @@
       (($ <guix-configuration>) (guix-shepherd-service config))
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
+      (($ <syslog-configuration>) (syslog-shepherd-service config))
       (('user-processes) (user-processes-shepherd-service '()))
       (_ '()))))
 
@@ -62,6 +64,19 @@
 
 (define guix-shepherd-service
   (@@ (gnu services base) guix-shepherd-service))
+
+
+;;;
+;;; Bridge for syslog.
+;;;
+
+(define <syslog-configuration>
+  (@@ (gnu services base) <syslog-configuration>))
+
+(define (syslog-shepherd-service config)
+  (append-map (cut <> config)
+              (map service-extension-compute
+                   (service-type-extensions syslog-service-type))))
 
 
 ;;;
