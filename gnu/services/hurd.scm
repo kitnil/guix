@@ -44,10 +44,19 @@
     (match config
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
+      (('user-processes) (user-processes-shepherd-service '()))
       (_ '()))))
 
 (define (first-of-two first second)
   first)
+
+
+;;;
+;;; Bridge for user-processes service, required for guix-daemon.
+;;;
+
+(define user-processes-shepherd-service
+  (@@ (gnu services shepherd) user-processes-shepherd-service))
 
 
 ;;;
