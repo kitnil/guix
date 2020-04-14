@@ -20,7 +20,7 @@
 ;;; Copyright © 2017 Adriano Peluso <catonano@gmail.com>
 ;;; Copyright © 2016 Dylan Jeffers <sapientech@sapientech@openmailbox.org>
 ;;; Copyright © 2016 David Craven <david@craven.ch>
-;;; Copyright © 2017 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2017, 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2015, 2016 David Thompson <davet@gnu.org>
 ;;; Copyright © 2017 Mark Meyer <mark@ofosos.org>
 ;;; Copyright © 2018 Tomáš Čech <sleep_walker@gnu.org>
@@ -3591,3 +3591,23 @@ and rendering come directly from GitHub, so you'll know exactly how it will
 appear.  Changes you make to the file will be instantly reflected in the browser
 without requiring a page refresh.")
       (license license:expat))))
+
+(define-public python-simplemediawiki
+  (package
+    (name "python-simplemediawiki")
+    (version "1.2.0")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/ianweller/python-simplemediawiki.git")
+                    (commit (string-append version "b2"))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "19d97a0qib3jqz652dcw82gx2zaf1n272ypnlkld4lra3vid9xqy"))))
+    (build-system python-build-system)
+    (home-page "https://github.com/ianweller/python-simplemediawiki/")
+    (synopsis "Extremely low-level Python wrapper to the MediaWiki API")
+    (description "This package provides an extremely low-level Python wrapper
+to the MediaWiki API.")
+    (license license:lgpl3+)))
