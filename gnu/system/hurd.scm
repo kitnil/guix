@@ -19,20 +19,30 @@
 
 (define-module (gnu system hurd)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26)
+  #:use-module (ice-9 match)
+  #:use-module (guix build-system gnu)
   #:use-module (guix gexp)
+  #:use-module (guix packages)
   #:use-module (guix profiles)
   #:use-module (guix utils)
   #:use-module (gnu bootloader grub)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages commencement)
+  #:use-module (gnu packages compression)
   #:use-module (gnu packages cross-base)
   #:use-module (gnu packages file)
+  #:use-module (gnu packages gawk)
+  #:use-module (gnu packages gcc)
   #:use-module (gnu packages guile)
   #:use-module (gnu packages guile-xyz)
   #:use-module (gnu packages hurd)
   #:use-module (gnu packages less)
+  #:use-module (gnu packages m4)
   #:use-module (gnu packages ssh)
+  #:use-module (gnu packages version-control)
   #:use-module (gnu services)
   #:use-module (gnu services base)
   #:use-module (gnu services hurd)
@@ -102,6 +112,25 @@
     (pam-services '())
     (setuid-programs '())))
 
+(define (input->packages input)
+  "Return the list of packages in INPUT."
+  (match input
+    ((label (and (? package?) package) . output)
+     (list package))
+    (_ '())))
+
+(define %hurd-os-development
+  (operating-system
+    (inherit %hurd-os)
+    (packages
+     (append
+      (list git-minimal)
+      (append-map input->packages
+                  (fold alist-delete (package-direct-inputs guix)
+                        '("graphviz" "po4a")))
+      (list gawk diffutils gnu-make m4 tar xz)
+      %base-packages/hurd))))
+
 (define operating-system-accounts
   (@@ (gnu system) operating-system-accounts))
 
@@ -148,7 +177,7 @@ fi\n")))
 (define (hurd-shepherd-services os)
   (append-map hurd-service->shepherd-service (operating-system-services os)))
 
-(define* (cross-hurd-image #:key (hurd hurd) (gnumach gnumach))
+(define* (cross-hurd-image #:key (hurd hurd) (gnumach gnumach) (os %hurd-os))
   "Return a cross-built GNU/Hurd image."
 
   (define (cross-built thing)
@@ -164,7 +193,7 @@ fi\n")))
 
   (define system-profile
     (map-manifest-entries cross-built-entry
-                          (packages->manifest %base-packages/hurd)))
+                          (packages->manifest (operating-system-packages os))))
 
   (define grub.cfg
     (let ((hurd (cross-built hurd))
@@ -218,11 +247,11 @@ sshd:x:2:2:sshd:/var/empty:/bin/no-sh
 
   (define shepherd.conf
     (with-parameters ((%current-target-system "i586-pc-gnu"))
-      (shepherd-configuration-file (hurd-shepherd-services %hurd-os))))
+      (shepherd-configuration-file (hurd-shepherd-services os))))
 
   (define boot-activation
     (with-parameters ((%current-target-system "i586-pc-gnu"))
-      (operating-system-activation-script %hurd-os)))
+      (operating-system-activation-script os)))
 
   (define hurd-directives
     `((directory "/servers")
@@ -306,3 +335,6 @@ sshd:x:2:2:sshd:/var/empty:/bin/no-sh
 
 ;; Return this thunk so one can type "guix build -f gnu/system/hurd.scm".
 cross-hurd-image
+
+;; Return the development thunk so "guix build -f gnu/system/hurd.scm"
+(lambda _ (cross-hurd-image #:os %hurd-os-development))
