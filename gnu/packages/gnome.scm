@@ -3728,7 +3728,7 @@ and the GLib main loop, to integrate well with GNOME applications.")
 (define-public libsecret
   (package
     (name "libsecret")
-    (version "0.20.2")
+    (version "0.20.3")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -3737,11 +3737,13 @@ and the GLib main loop, to integrate well with GNOME applications.")
                     "libsecret-" version ".tar.xz"))
               (sha256
                (base32
-                "1hzz34gmsxxf1jm1b7qin390rkwbg8sx198xdkwxqp3q6cw19sc1"))))
+                "1r4habxdzmn02id324m0m4mg5isf22q1z436bg3vjjmcz1b3rjsg"))))
     (build-system gnu-build-system)
     (outputs '("out" "doc"))
     (arguments
-     `(#:tests? #f ; FIXME: Testing hangs.
+     `(;; Tests fail because "/var/lib/dbus/machine-id" and "/etc/machine-id" are
+       ;; inaccessible from within the build environment.
+       #:tests? #f
        #:configure-flags
        (list (string-append "--with-html-dir="
                             (assoc-ref %outputs "doc")
@@ -3754,12 +3756,12 @@ and the GLib main loop, to integrate well with GNOME applications.")
        ("vala" ,vala)
        ("xsltproc" ,libxslt)))
        ;; These are needed for the tests.
-       ;; FIXME: Add gjs once available.
-       ;("dbus" ,dbus)
-       ;("python2" ,python-2)
-       ;("python2-dbus" ,python2-dbus)
-       ;("python2-pygobject" ,python2-pygobject)
-       ;("python2-pygobject-2" ,python2-pygobject-2)))
+       ;;("gjs" ,gjs)
+       ;;("dbus" ,dbus)
+       ;;("python" ,python)
+       ;;("python-dbus" ,python-dbus)
+       ;;("python-pygobject" ,python-pygobject)
+       ;;("xorg-server" ,xorg-server-for-tests)))
     (propagated-inputs
      `(("glib" ,glib))) ; required by libsecret-1.pc
     (inputs
