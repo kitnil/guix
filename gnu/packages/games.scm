@@ -6767,7 +6767,7 @@ GameController.")
 (define-public quadrapassel
   (package
     (name "quadrapassel")
-    (version "3.32.0")
+    (version "3.36.00")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/quadrapassel/"
@@ -6775,7 +6775,7 @@ GameController.")
                                   "quadrapassel-" version ".tar.xz"))
               (sha256
                (base32
-                "1zhi1957knz9dm98drn2dh95mr33sdch590yddh1f8r6bzsfjvpy"))))
+                "1xk9x1pp71armj47vxja7fsj6gs116kcjkd8xgwf8wi4zr4kgx7g"))))
     (build-system meson-build-system)
     (arguments
      '(#:glib-or-gtk? #t
@@ -6798,6 +6798,7 @@ GameController.")
     (inputs
      `(("clutter" ,clutter)
        ("clutter-gtk" ,clutter-gtk)
+       ("gsound" ,gsound)
        ("gtk+" ,gtk+)
        ("libcanberra" ,libcanberra)
        ("libmanette" ,libmanette)
