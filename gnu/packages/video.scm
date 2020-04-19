@@ -3952,71 +3952,71 @@ applications.  It only supports Intel-compatible CPUs (x86).")
         (method url-fetch)
         (uri (crate-uri "rav1e" version))
         (file-name
-          (string-append name "-" version ".tar.gz"))
+         (string-append name "-" version ".tar.gz"))
         (sha256
-          (base32
-            "1bsmj8kqzs5pf8dl98rsl6a67cljj1gkj3b5hmd8hn8wdy4ya173"))))
+         (base32
+          "1bsmj8kqzs5pf8dl98rsl6a67cljj1gkj3b5hmd8hn8wdy4ya173"))))
     (build-system cargo-build-system)
     (arguments
-      `(#:cargo-inputs
-        (("rust-simd-helpers" ,rust-simd-helpers-0.1)
-         ("rust-ivf" ,rust-ivf-0.1)
-         ("rust-cfg-if" ,rust-cfg-if-0.1)
-         ("rust-paste" ,rust-paste-0.1)
-         ("rust-signal-hook" ,rust-signal-hook-0.1)
-         ("rust-aom-sys" ,rust-aom-sys-0.1)
-         ("rust-nasm-rs" ,rust-nasm-rs-0.1)
-         ("rust-arbitrary" ,rust-arbitrary-0.2)
-         ("rust-better-panic" ,rust-better-panic-0.2)
-         ("rust-noop-proc-macro"
-          ,rust-noop-proc-macro-0.2)
-         ("rust-num-traits" ,rust-num-traits-0.2)
-         ("rust-rand-chacha" ,rust-rand-chacha-0.2)
-         ("rust-err-derive" ,rust-err-derive-0.2)
-         ("rust-interpolate-name"
-          ,rust-interpolate-name-0.2)
-         ("rust-rustc-version" ,rust-rustc-version-0.2)
-         ("rust-scan-fmt" ,rust-scan-fmt-0.2)
-         ("rust-libc" ,rust-libc-0.2)
-         ("rust-image" ,rust-image-0.22)
-         ("rust-arg-enum-proc-macro"
-          ,rust-arg-enum-proc-macro-0.3)
-         ("rust-num-derive" ,rust-num-derive-0.3)
-         ("rust-dav1d-sys" ,rust-dav1d-sys-0.3)
-         ("rust-backtrace" ,rust-backtrace-0.3)
-         ("rust-log" ,rust-log-0.4)
-         ("rust-y4m" ,rust-y4m-0.5)
-         ("rust-arrayvec" ,rust-arrayvec-0.5)
-         ("rust-toml" ,rust-toml-0.5)
-         ("rust-fern" ,rust-fern-0.5)
-         ("rust-rust-hawktracer"
-          ,rust-rust-hawktracer-0.7)
-         ("rust-rand" ,rust-rand-0.7)
-         ("rust-itertools" ,rust-itertools-0.8)
-         ("rust-bitstream-io" ,rust-bitstream-io-0.8)
-         ("rust-console" ,rust-console-0.9)
-         ("rust-serde" ,rust-serde-1.0)
-         ("rust-cc" ,rust-cc-1.0)
-         ("rust-rayon" ,rust-rayon-1.3)
-         ("rust-byteorder" ,rust-byteorder-1.3)
-         ("rust-clap" ,rust-clap-2)
-         ("rust-vergen" ,rust-vergen-3.1))
-        #:cargo-development-inputs
-        (("rust-rand-chacha" ,rust-rand-chacha-0.2)
-         ("rust-interpolate-name"
-          ,rust-interpolate-name-0.2)
-         ("rust-criterion" ,rust-criterion-0.3)
-         ("rust-pretty-assertions"
-          ,rust-pretty-assertions-0.6)
-         ("rust-rand" ,rust-rand-0.7)
-         ("rust-semver" ,rust-semver-0.9))
-        #:phases
-        (modify-phases %standard-phases
-          (replace 'build
-            (lambda* (#:key outputs #:allow-other-keys)
-              (let ((out (assoc-ref outputs "out")))
-                (invoke "cargo" "cinstall" "--release"
-                        (string-append "--prefix=" out))))))))
+     `(#:cargo-inputs
+       (("rust-simd-helpers" ,rust-simd-helpers-0.1)
+        ("rust-ivf" ,rust-ivf-0.1)
+        ("rust-cfg-if" ,rust-cfg-if-0.1)
+        ("rust-paste" ,rust-paste-0.1)
+        ("rust-signal-hook" ,rust-signal-hook-0.1)
+        ("rust-aom-sys" ,rust-aom-sys-0.1)
+        ("rust-nasm-rs" ,rust-nasm-rs-0.1)
+        ("rust-arbitrary" ,rust-arbitrary-0.2)
+        ("rust-better-panic" ,rust-better-panic-0.2)
+        ("rust-noop-proc-macro"
+         ,rust-noop-proc-macro-0.2)
+        ("rust-num-traits" ,rust-num-traits-0.2)
+        ("rust-rand-chacha" ,rust-rand-chacha-0.2)
+        ("rust-err-derive" ,rust-err-derive-0.2)
+        ("rust-interpolate-name"
+         ,rust-interpolate-name-0.2)
+        ("rust-rustc-version" ,rust-rustc-version-0.2)
+        ("rust-scan-fmt" ,rust-scan-fmt-0.2)
+        ("rust-libc" ,rust-libc-0.2)
+        ("rust-image" ,rust-image-0.22)
+        ("rust-arg-enum-proc-macro"
+         ,rust-arg-enum-proc-macro-0.3)
+        ("rust-num-derive" ,rust-num-derive-0.3)
+        ("rust-dav1d-sys" ,rust-dav1d-sys-0.3)
+        ("rust-backtrace" ,rust-backtrace-0.3)
+        ("rust-log" ,rust-log-0.4)
+        ("rust-y4m" ,rust-y4m-0.5)
+        ("rust-arrayvec" ,rust-arrayvec-0.5)
+        ("rust-toml" ,rust-toml-0.5)
+        ("rust-fern" ,rust-fern-0.5)
+        ("rust-rust-hawktracer"
+         ,rust-rust-hawktracer-0.7)
+        ("rust-rand" ,rust-rand-0.7)
+        ("rust-itertools" ,rust-itertools-0.8)
+        ("rust-bitstream-io" ,rust-bitstream-io-0.8)
+        ("rust-console" ,rust-console-0.9)
+        ("rust-serde" ,rust-serde-1.0)
+        ("rust-cc" ,rust-cc-1.0)
+        ("rust-rayon" ,rust-rayon-1.3)
+        ("rust-byteorder" ,rust-byteorder-1.3)
+        ("rust-clap" ,rust-clap-2)
+        ("rust-vergen" ,rust-vergen-3.1))
+       #:cargo-development-inputs
+       (("rust-rand-chacha" ,rust-rand-chacha-0.2)
+        ("rust-interpolate-name"
+         ,rust-interpolate-name-0.2)
+        ("rust-criterion" ,rust-criterion-0.3)
+        ("rust-pretty-assertions"
+         ,rust-pretty-assertions-0.6)
+        ("rust-rand" ,rust-rand-0.7)
+        ("rust-semver" ,rust-semver-0.9))
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'build
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (invoke "cargo" "cinstall" "--release"
+                       (string-append "--prefix=" out))))))))
     (native-inputs
      `(("cargo-c" ,rust-cargo-c)))
     (inputs
@@ -4024,7 +4024,5 @@ applications.  It only supports Intel-compatible CPUs (x86).")
     (home-page "https://github.com/xiph/rav1e/")
     (synopsis "The fastest and safest AV1 encoder")
     (description
-      "The fastest and safest AV1 encoder")
-    (license license:bsd-2 ; AUDIT
-             ;XXX unknown-license!
-             )))
+     "The fastest and safest AV1 encoder.")
+    (license license:bsd-2)))
