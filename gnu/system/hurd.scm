@@ -30,6 +30,7 @@
   #:use-module (gnu packages admin)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages bootstrap)
   #:use-module (gnu packages commencement)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cross-base)
@@ -191,9 +192,23 @@ fi\n")))
       (dependencies (map cross-built-entry
                          (manifest-entry-dependencies entry)))))
 
+  (define (cross-bootstrap thing)
+    (with-parameters ((%current-system "i586-gnu"))
+      thing))
+
+  (define (cross-bootstrap-entry entry)
+    (manifest-entry
+      (inherit entry)
+      (item (cross-bootstrap (manifest-entry-item entry)))))
+
   (define system-profile
-    (map-manifest-entries cross-built-entry
-                          (packages->manifest (operating-system-packages os))))
+    (concatenate-manifests
+     (list (map-manifest-entries cross-built-entry
+                                 (packages->manifest (operating-system-packages os)))
+           (map-manifest-entries cross-bootstrap-entry
+                                 (packages->manifest (list %bootstrap-gcc
+                                                           %bootstrap-binutils
+                                                           %bootstrap-glibc))))))
 
   (define grub.cfg
     (let ((hurd (cross-built hurd))
@@ -253,6 +268,15 @@ sshd:x:2:2:sshd:/var/empty:/bin/no-sh
     (with-parameters ((%current-target-system "i586-pc-gnu"))
       (operating-system-activation-script os)))
 
+  (define root-.gitconfig
+    (plain-file "root-.gitconfig"
+                "\
+[url \"git+ssh://git.sv.gnu.org/srv/git/\"]
+	insteadof = gnu-ssh:
+[url \"git://git.savannah.gnu.org/\"]
+	insteadof = gnu:
+")) ;" help Emacs
+
   (define hurd-directives
     `((directory "/servers")
       ,@(map (lambda (server)
@@ -311,7 +335,8 @@ sshd:x:2:2:sshd:/var/empty:/bin/no-sh
       ("/bin/sh" -> ,(file-append (with-parameters ((%current-target-system
                                                      "i586-pc-gnu"))
                                     bash)
-                                  "/bin/sh"))))
+                                  "/bin/sh"))
+      ("/root/.gitconfig" -> ,root-.gitconfig)))
 
   (qemu-image #:file-system-type "ext2"
               #:file-system-options '("-o" "hurd")
@@ -323,7 +348,8 @@ sshd:x:2:2:sshd:/var/empty:/bin/no-sh
                          ("group" ,group)
                          ("shadow" ,shadow)
                          ("shepherd.conf" ,shepherd.conf)
-                         ("boot-activation" ,boot-activation))
+                         ("boot-activation" ,boot-activation)
+                         ("root-.gitconfig" ,root-.gitconfig))
               #:copy-inputs? #t
               #:os system-profile
               #:bootcfg-drv grub.cfg
