@@ -8059,7 +8059,7 @@ desktop.  It supports world clock, stop watch, alarms, and count down timer.")
 (define-public gnome-calendar
   (package
     (name "gnome-calendar")
-    (version "3.34.2")
+    (version "3.36.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/" name "/"
@@ -8067,13 +8067,10 @@ desktop.  It supports world clock, stop watch, alarms, and count down timer.")
                                   name "-" version ".tar.xz"))
               (sha256
                (base32
-                "1bnmd191044zn2kr6f5vg7sm5q59qf7z652awll1f7s6ahijr8rw"))))
+                "0ql3f509bj17riqs0jfpp434s97dzjgkjcd978i4m4y80nq2131v"))))
     (build-system meson-build-system)
     (arguments
      '(#:glib-or-gtk? #t
-       ;; gnome-calendar has to be installed before the tests can be run
-       ;; https://bugzilla.gnome.org/show_bug.cgi?id=788224
-       #:tests? #f
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'skip-gtk-update-icon-cache
@@ -8093,6 +8090,7 @@ desktop.  It supports world clock, stop watch, alarms, and count down timer.")
        ("libdazzle" ,libdazzle)
        ("libedataserverui" ,evolution-data-server)
        ("libgweather" ,libgweather)
+       ("libhandy" ,libhandy)
        ("geoclue" ,geoclue)))
     (home-page "https://wiki.gnome.org/Apps/Calendar")
     (synopsis "GNOME's calendar application")
