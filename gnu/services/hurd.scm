@@ -18,6 +18,7 @@
 
 (define-module (gnu services hurd)
   #:use-module (gnu packages hurd)
+  #:use-module (gnu packages ssh)
   #:use-module (gnu services)
   #:use-module (gnu services base)
   #:use-module (gnu services shepherd)
@@ -48,6 +49,7 @@
       (($ <guix-configuration>) (guix-shepherd-service config))
       (($ <hurd-console-configuration>) (hurd-console-shepherd-service config))
       (($ <hurd-ttys-configuration>) (hurd-ttys-shepherd-service config))
+      (($ <openssh-configuration>) (openssh-shepherd-service config))
       (($ <syslog-configuration>) (syslog-shepherd-service config))
       (('loopback) (hurd-loopback-shepherd-service #f))
       (('user-processes) (user-processes-shepherd-service '()))
@@ -192,5 +194,16 @@ Hurd.")))
    (compose concatenate)
    (extend first-of-two)
    (default-value (hurd-ttys-configuration))))
+
+
+;;;
+;;; Bridge for OpenSSH.
+;;;
+
+(define <openssh-configuration>
+  (@@ (gnu services ssh) <openssh-configuration>))
+
+(define openssh-shepherd-service
+  (@@ (gnu services ssh) openssh-shepherd-service))
 
 ;;; hurd.scm ends here
