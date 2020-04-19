@@ -32,11 +32,14 @@
   #:use-module (gnu packages guile-xyz)
   #:use-module (gnu packages hurd)
   #:use-module (gnu packages less)
+  #:use-module (gnu packages ssh)
   #:use-module (gnu services)
   #:use-module (gnu services base)
   #:use-module (gnu services hurd)
   #:use-module (gnu services shepherd)
+  #:use-module (gnu services ssh)
   #:use-module (gnu system)
+  #:use-module (gnu system pam)
   #:use-module (gnu system shadow)
   #:use-module (gnu system vm)
   #:export (cross-hurd-image))
@@ -65,14 +68,16 @@
 (define %base-packages/hurd
   (list hurd bash coreutils file findutils grep sed
         guile-3.0 guile-colorized guile-readline
-        net-base inetutils less shepherd which))
+        net-base inetutils less openssh shepherd which))
 
 (define %base-services/hurd
   (list (service user-processes-service-type)
         (service hurd-console-service-type
                  (hurd-console-configuration (hurd hurd)))
         (service hurd-ttys-service-type
-                 (hurd-ttys-configuration (hurd hurd)))))
+                 (hurd-ttys-configuration (hurd hurd)))
+        (service hurd-loopback-service-type)
+        (syslog-service)))
 
 (define %hurd-os
   (operating-system
@@ -85,7 +90,15 @@
     (timezone "GNUrope")
     (name-service-switch #f)
     (essential-services (hurd-essential-services this-operating-system))
-    (services %base-services/hurd)
+    (services (cons (service openssh-service-type
+                             (openssh-configuration
+                              (use-pam? #f)
+                              (openssh openssh)
+                              (port-number 2222)
+                              (permit-root-login #t)
+                              (allow-empty-passwords? #t)
+                              (password-authentication? #t)))
+                    %base-services/hurd))
     (pam-services '())
     (setuid-programs '())))
 
@@ -127,6 +140,7 @@ fi\n")))
         (account-service (append (operating-system-accounts os)
                                  (operating-system-groups os))
                          (operating-system-skeletons os))
+        (pam-root-service (operating-system-pam-services os))
         (hurd-etc-service os)
         (service profile-service-type
                  (operating-system-packages os))))
@@ -189,6 +203,7 @@ menuentry \"GNU\" {
     (plain-file "passwd"
                 "root:x:0:0:root:/root:/bin/sh
 guixbuilder:x:1:1:guixbuilder:/var/empty:/bin/no-sh
+sshd:x:2:2:sshd:/var/empty:/bin/no-sh
 "))
 
   (define group
@@ -198,7 +213,7 @@ guixbuilder:x:1:1:guixbuilder:/var/empty:/bin/no-sh
 
   (define shadow
     (plain-file "shadow"
-                "root::0:0:0:0:::
+                "root::17873::::::
 "))
 
   (define shepherd.conf
@@ -262,6 +277,7 @@ guixbuilder:x:1:1:guixbuilder:/var/empty:/bin/no-sh
                                                        "i586-pc-gnu"))
                                       hurd)
                                     "/etc/ttys"))
+      (directory "/etc/ssh")
       ("/etc/shepherd.conf" -> ,shepherd.conf)
       ("/bin/sh" -> ,(file-append (with-parameters ((%current-target-system
                                                      "i586-pc-gnu"))
