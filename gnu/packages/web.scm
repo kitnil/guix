@@ -7349,3 +7349,32 @@ solution for any project's interface needs:
 @item Easily integrated and extensible with Python or Lua scripting.
 @end itemize\n")
     (license license:expat)))
+
+(define-public tt-rss
+  (let ((commit "11a9d3bd9be1dcbf5177baa9846770012da3ce8b"))
+    (package
+      (name "tt-rss")
+      (version (git-version "0.0.1" "1" commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://git.tt-rss.org/git/tt-rss.git")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0jx4pflyiza8zbzk3c1hff4sjvkjjnsbd9nlzll9d4ylg11rjx5s"))))
+      (build-system trivial-build-system)
+      (arguments
+       `(#:modules ((guix build utils))
+         #:builder
+         (begin
+           (use-modules (guix build utils))
+           (let ((source (assoc-ref %build-inputs "source"))
+                 (php-dir (string-append %output "/share/web/" ,name "/")))
+             (copy-recursively source php-dir)
+             #t))))
+      (home-page "https://tt-rss.org/")
+      (synopsis "Web-based news feed (RSS/Atom) aggregator")
+      (description "This package provides a web-based news feed (RSS/Atom) aggregator.")
+      (license license:gpl2+))))
