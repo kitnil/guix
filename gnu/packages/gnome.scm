@@ -7014,7 +7014,7 @@ devices using the GNOME desktop.")
 (define-public gnome-control-center
   (package
     (name "gnome-control-center")
-    (version "3.34.2")
+    (version "3.36.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/" name "/"
@@ -7022,7 +7022,7 @@ devices using the GNOME desktop.")
                                   name "-" version ".tar.xz"))
               (sha256
                (base32
-                "054igagvmyzpaa5nwzz98gv7bk7l5dwp6g813707132si3szlpx8"))))
+                "1466swjyw5vjym001qda94x6sisd4xhpyb6vq91grhkyzwf2vqzk"))))
     (build-system meson-build-system)
     (arguments
      '(#:glib-or-gtk? #t
@@ -7050,8 +7050,8 @@ devices using the GNOME desktop.")
                  (("\"gkbd-keyboard-display")
                   (string-append "\"" libgnomekbd
                                  "/bin/gkbd-keyboard-display")))
-               (substitute* '("panels/network/net-device-wifi.c"
-                              "panels/network/net-device.c"
+               (substitute* '("panels/network/net-device-mobile.c"
+                              "panels/network/net-device-bluetooth.c"
                               "panels/network/connection-editor/net-connection-editor.c")
                  (("\"nm-connection-editor")
                   (string-append "\"" nm-applet
@@ -7059,7 +7059,7 @@ devices using the GNOME desktop.")
                (substitute* '("panels/user-accounts/run-passwd.c")
                  (("/usr/bin/passwd")
                   "/run/setuid-programs/passwd"))
-               (substitute* "panels/info/cc-info-overview-panel.c"
+               (substitute* "panels/info-overview/cc-info-overview-panel.c"
                  (("DATADIR \"/gnome/gnome-version.xml\"")
                   (string-append "\"" gnome-desktop
                                  "/share/gnome/gnome-version.xml\"")))
@@ -7100,6 +7100,7 @@ devices using the GNOME desktop.")
        ("libgnomekbd" ,libgnomekbd)
        ("libgudev" ,libgudev)
        ("libgtop" ,libgtop)
+       ("libnma" ,libnma)
        ("libpwquality" ,libpwquality)
        ("libsecret" ,libsecret)
        ("libsoup" ,libsoup)
