@@ -7128,7 +7128,7 @@ properties, screen resolution, and other GNOME parameters.")
 (define-public gnome-shell
   (package
     (name "gnome-shell")
-    (version "3.34.2")
+    (version "3.36.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://gnome/sources/" name "/"
@@ -7136,7 +7136,7 @@ properties, screen resolution, and other GNOME parameters.")
                                   name "-" version ".tar.xz"))
               (sha256
                (base32
-                "0k9vq2gh1nhdd6fpp7jnwx37qxaakawiqw1xnlfjvq5g5zdn8ckh"))
+                "0696qw6bmbga30qlvh1k6bkiajl7877j8yis4bwmi1wxkcmkh854"))
               (patches (search-patches "gnome-shell-theme.patch"
                                        "gnome-shell-disable-test.patch"))
               (modules '((guix build utils)))
@@ -7178,6 +7178,13 @@ properties, screen resolution, and other GNOME parameters.")
                  (("keysdir =.*")
                   (string-append "keysdir = '" keysdir "'\n")))
                #t)))
+         (add-after 'unpack 'skip-gtk-update-icon-cache
+           ;; Don't create 'icon-theme.cache'.
+           (lambda _
+             (substitute* '("meson/postinstall.py"
+                            "subprojects/extensions-app/build-aux/meson/postinstall.py")
+               (("gtk-update-icon-cache") "true"))
+             #t))
          (add-before 'configure 'convert-logo-to-png
            (lambda* (#:key inputs #:allow-other-keys)
              ;; Convert the logo from SVG to PNG.
@@ -7258,6 +7265,7 @@ properties, screen resolution, and other GNOME parameters.")
        ("gnome-bluetooth" ,gnome-bluetooth)
        ("gnome-desktop" ,gnome-desktop)
        ("gnome-settings-daemon" ,gnome-settings-daemon)
+       ("graphene" ,graphene)
        ("gst-plugins-base" ,gst-plugins-base)
        ("ibus" ,ibus)
        ("libcanberra" ,libcanberra)
