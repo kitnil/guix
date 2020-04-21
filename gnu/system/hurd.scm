@@ -89,7 +89,13 @@
         (service hurd-ttys-service-type
                  (hurd-ttys-configuration (hurd hurd)))
         (service hurd-loopback-service-type)
-        (syslog-service)))
+        (syslog-service)
+        (service guix-service-type
+                 (guix-configuration
+                  (guix guix)
+                  (extra-options '("--disable-chroot"
+                                   "--disable-deduplication"
+                                   "--max-jobs=1"))))))
 
 (define %hurd-os
   (operating-system
