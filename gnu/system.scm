@@ -572,6 +572,7 @@ bookkeeping."
         (account-service (append (operating-system-accounts os)
                                  (operating-system-groups os))
                          (operating-system-skeletons os))
+        (service hurd-file-systems-service-type)
         (pam-root-service (operating-system-pam-services os))
         (hurd-etc-service os)
         (service profile-service-type
