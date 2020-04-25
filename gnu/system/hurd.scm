@@ -107,7 +107,7 @@
     (swap-devices '())
     (timezone "GNUrope")
     (name-service-switch #f)
-    (essential-services (hurd-essential-services this-operating-system))
+    (essential-services (hurd-default-essential-services this-operating-system))
     (services (cons (service openssh-service-type
                              (openssh-configuration
                               (use-pam? #f)
@@ -144,20 +144,6 @@
 
 (define operating-system-etc-directory
   (@@ (gnu system) operating-system-etc-directory))
-
-(define (hurd-essential-services os)
-  (list (service system-service-type '() ;;entries
-                 )
-        %boot-service
-        %shepherd-root-service
-        %activation-service
-        (account-service (append (operating-system-accounts os)
-                                 (operating-system-groups os))
-                         (operating-system-skeletons os))
-        (pam-root-service (operating-system-pam-services os))
-        (hurd-etc-service os)
-        (service profile-service-type
-                 (operating-system-packages os))))
 
 (define (hurd-shepherd-services os)
   (append-map hurd-service->shepherd-service (operating-system-services os)))

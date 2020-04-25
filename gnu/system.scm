@@ -38,6 +38,7 @@
   #:use-module (gnu packages bash)
   #:use-module (gnu packages guile)
   #:use-module (gnu packages guile-xyz)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pciutils)
@@ -51,8 +52,9 @@
   #:use-module (gnu packages compression)
   #:use-module (gnu packages firmware)
   #:use-module (gnu services)
-  #:use-module (gnu services shepherd)
   #:use-module (gnu services base)
+  #:use-module (gnu services hurd)
+  #:use-module (gnu services shepherd)
   #:use-module (gnu bootloader)
   #:use-module (gnu system shadow)
   #:use-module (gnu system nss)
@@ -123,6 +125,8 @@
             system-linux-image-file-name
             operating-system-with-gc-roots
             operating-system-with-provenance
+
+            hurd-default-essential-services
 
             boot-parameters
             boot-parameters?
@@ -559,6 +563,19 @@ bookkeeping."
                    (list %linux-bare-metal-service
                          (service firmware-service-type
                                   (operating-system-firmware os)))))))
+
+(define (hurd-default-essential-services os)
+  (list (service system-service-type '())
+        %boot-service
+        %shepherd-root-service
+        %activation-service
+        (account-service (append (operating-system-accounts os)
+                                 (operating-system-groups os))
+                         (operating-system-skeletons os))
+        (pam-root-service (operating-system-pam-services os))
+        (hurd-etc-service os)
+        (service profile-service-type
+                 (operating-system-packages os))))
 
 (define* (operating-system-services os)
   "Return all the services of OS, including \"essential\" services."
