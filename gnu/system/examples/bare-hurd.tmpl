@@ -1,0 +1,29 @@
+;; -*-scheme-*-
+
+;; This is an operating system configuration template
+;; for a "bare bones" setup, with no X11 display server.
+
+(use-modules (gnu) (gnu system hurd))
+(use-service-modules hurd ssh)
+(use-package-modules ssh)
+
+(define %hurd-os
+  (operating-system
+    (inherit %hurd-default-operating-system)
+    (bootloader (bootloader-configuration
+                 (bootloader hurd-grub-minimal-bootloader)
+                 (target "/dev/sdX")))
+    (host-name "guixygnu")
+    (timezone "GNUrope")
+    (packages %base-packages/hurd)
+    (services (cons (service openssh-service-type
+                             (openssh-configuration
+                              (use-pam? #f)
+                              (openssh openssh)
+                              (port-number 2222)
+                              (permit-root-login #t)
+                              (allow-empty-passwords? #t)
+                              (password-authentication? #t)))
+                    %base-services/hurd))))
+
+%hurd-os

@@ -343,6 +343,7 @@ AUX_FILES =						\
 EXAMPLES =					\
   gnu/system/examples/asus-c201.tmpl		\
   gnu/system/examples/bare-bones.tmpl		\
+  gnu/system/examples/bare-hurd.tmpl		\
   gnu/system/examples/beaglebone-black.tmpl	\
   gnu/system/examples/desktop.tmpl		\
   gnu/system/examples/lightweight-desktop.tmpl	\

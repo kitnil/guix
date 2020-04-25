@@ -104,15 +104,15 @@
 
 (define* (hurd-grub-configuration-file config entries
                                        #:key
-                                       (system (%current-system))
+                                       (system "i586-pc-gnu")
                                        (old-entries '()))
-  (let ((hurd (if (equal? system (%current-system))
+  (let ((hurd (if (equal? (%current-system) "i586-pc-gnu")
                   hurd
                   (with-parameters ((%current-target-system system))
                     hurd)))
         (mach (with-parameters ((%current-system "i686-linux"))
                 gnumach))
-        (libc (if (equal? system (%current-system))
+        (libc (if (equal? system "i586-pc-gnu")
                   glibc
                   (cross-libc system))))
     (computed-file "grub.cfg"
@@ -142,15 +142,30 @@ menuentry \"GNU\" {
 
 (define %hurd-default-operating-system
   (operating-system
-    (host-name "guixygnu")
+    (kernel hurd)
+    ;; (kernel-loadable-modules '())
+    (kernel-arguments '())
     (bootloader (bootloader-configuration
                  (bootloader hurd-grub-minimal-bootloader)
                  (target "/dev/vda")))
-    (kernel hurd)
-    (initrd-modules '())
+    (label (lambda _ "label"))
+    (initrd (lambda _ '()))
+    (initrd-modules (lambda _ '()))
+    (firmware '())
+    (host-name "guixygnu")
+    ;; (hosts-file #F)
+    ;; (mapped-devices '())
     (file-systems '())
-    (swap-devices '())
+    ;; (swap-devices '())
+    (users '())
+    ;(groups '())
+    (skeletons '())
+    ;; (issue %default-issue)
+    (packages %base-packages/hurd)
     (timezone "GNUrope")
+    ;; (locale "en_US.utf8")
+    (locale-definitions '())
+    ;; (locale-libcs '())
     (name-service-switch #f)
     (essential-services (hurd-default-essential-services this-operating-system))
     (services (cons (service openssh-service-type
@@ -162,10 +177,9 @@ menuentry \"GNU\" {
                               (allow-empty-passwords? #t)
                               (password-authentication? #t)))
                     %base-services/hurd))
-    (packages %base-packages/hurd)
     (pam-services '())
     (setuid-programs '())
-    (users '())))
+    (sudoers-file #f)))
 
 (define (input->packages input)
   "Return the list of packages in INPUT."
