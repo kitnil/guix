@@ -49,6 +49,7 @@
   #:use-module (gnu packages virtualization)
   #:use-module (gnu packages disk)
   #:use-module (gnu packages zile)
+  #:use-module (gnu packages hurd)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages admin)
 
@@ -361,13 +362,14 @@ INPUTS is a list of inputs (as for packages)."
 (define* (qemu-image #:key
                      (name "qemu-image")
                      (system (%current-system))
-                     (target (%current-target-system))
+                     (target (if (hurd-target?) #f (%current-target-system)))
                      (qemu qemu-minimal)
                      (disk-image-size 'guess)
                      (disk-image-format "qcow2")
-                     (file-system-type "ext4")
-                     (file-system-options '())
-                     (device-nodes 'linux)
+                     (file-system-type (if (hurd-target?) "ext2" "ext4"))
+                     (file-system-options
+                      (if (hurd-target?) '("-o" "hurd") '()))
+                     (device-nodes (if (hurd-target?) 'hurd 'linux))
                      (extra-directives '())
                      file-system-label
                      file-system-uuid
@@ -494,7 +496,7 @@ system that is passed to 'populate-root-file-system'."
                       ;; FIXME: ‘target-arm?’ may be not operate on the right
                       ;; system/target values.  Rewrite using ‘let-system’ when
                       ;; available.
-                      (if #$(target-arm?)
+                      (if #$(or (hurd-target?) (target-arm?))
                           '()
                           (list (partition
                                  ;; The standalone grub image is about 10MiB, but
@@ -506,7 +508,7 @@ system that is passed to 'populate-root-file-system'."
                                  ;; on file system size (16 in this case).
                                  (file-system "vfat")
                                  (flags '(esp)))))))
-                    (grub-efi #$(and (not (target-arm?)) grub-efi)))
+                    (grub-efi #$(and (not (hurd-target?)) (not (target-arm?)) grub-efi)))
                (initialize-hard-disk "/dev/vda"
                                      #:partitions partitions
                                      #:grub-efi grub-efi
@@ -774,7 +776,7 @@ substitutable."
 
 (define* (system-qemu-image os
                             #:key
-                            (file-system-type "ext4")
+                            (file-system-type (if (hurd-target?) "exit2" "ext4"))
                             (disk-image-size (* 900 (expt 2 20))))
   "Return the derivation of a freestanding QEMU image of DISK-IMAGE-SIZE bytes
 of the GNU system as described by OS."
