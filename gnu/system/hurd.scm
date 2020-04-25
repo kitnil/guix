@@ -54,7 +54,10 @@
   #:use-module (gnu system pam)
   #:use-module (gnu system shadow)
   #:use-module (gnu system vm)
-  #:export (cross-hurd-image))
+  #:export (cross-hurd-image
+            %base-packages/hurd
+            %base-services/hurd
+            %hurd-default-operating-system))
 
 ;;; Commentary:
 ;;;
@@ -97,11 +100,11 @@
                                    "--disable-deduplication"
                                    "--max-jobs=1"))))))
 
-(define %hurd-os
+(define %hurd-default-operating-system
   (operating-system
     (host-name "guixygnu")
     (bootloader #f)
-    (kernel #f)
+    (kernel hurd)
     (initrd-modules '())
     (file-systems '())
     (swap-devices '())
@@ -117,8 +120,10 @@
                               (allow-empty-passwords? #t)
                               (password-authentication? #t)))
                     %base-services/hurd))
+    (packages %base-packages/hurd)
     (pam-services '())
-    (setuid-programs '())))
+    (setuid-programs '())
+    (users '())))
 
 (define (input->packages input)
   "Return the list of packages in INPUT."
@@ -129,7 +134,7 @@
 
 (define %hurd-os-development
   (operating-system
-    (inherit %hurd-os)
+    (inherit %hurd-default-operating-system)
     (packages
      (append
       (list git-minimal)
@@ -148,7 +153,7 @@
 (define (hurd-shepherd-services os)
   (append-map hurd-service->shepherd-service (operating-system-services os)))
 
-(define* (cross-hurd-image #:key (hurd hurd) (gnumach gnumach) (os %hurd-os))
+(define* (cross-hurd-image #:key (hurd hurd) (gnumach gnumach) (os %hurd-default-operating-system))
   "Return a cross-built GNU/Hurd image."
 
   (define (cross-built thing)
