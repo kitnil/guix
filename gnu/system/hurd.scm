@@ -55,6 +55,7 @@
   #:use-module (gnu system shadow)
   #:use-module (gnu system vm)
   #:export (cross-hurd-image
+            hurd-grub-configuration-file
             %base-packages/hurd
             %base-services/hurd
             %hurd-default-operating-system))
@@ -99,6 +100,40 @@
                   (extra-options '("--disable-chroot"
                                    "--disable-deduplication"
                                    "--max-jobs=1"))))))
+
+(define* (hurd-grub-configuration-file config entries
+                                       #:key
+                                       (system (%current-system))
+                                       (old-entries '()))
+  (pk "hurd-grub-configuration-file")
+  (let ((hurd (if (equal? system (%current-system))
+                  hurd
+                  (with-parameters ((%current-target-system system))
+                    hurd)))
+        (mach (with-parameters ((%current-system "i686-linux"))
+                gnumach))
+        (libc (if (equal? system (%current-system))
+                  glibc
+                  (cross-libc system))))
+    (computed-file "grub.cfg"
+                   #~(call-with-output-file #$output
+                       (lambda (port)
+                         (format port "
+set timeout=2
+search.file ~a/boot/gnumach
+
+menuentry \"GNU\" {
+  multiboot ~a/boot/gnumach root=device:hd0s1
+  module ~a/hurd/ext2fs.static ext2fs \\
+    --multiboot-command-line='${kernel-command-line}' \\
+    --host-priv-port='${host-port}' \\
+    --device-master-port='${device-port}' \\
+    --exec-server-task='${exec-task}' -T typed '${root}' \\
+    '$(task-create)' '$(task-resume)'
+  module ~a/lib/ld.so.1 exec ~a/hurd/exec '$(exec-task=task-create)'
+}\n"
+                                 #+mach #+mach #+hurd
+                                 #+libc #+hurd))))))
 
 (define %hurd-default-operating-system
   (operating-system
@@ -186,29 +221,7 @@
                                                            %bootstrap-glibc))))))
 
   (define grub.cfg
-    (let ((hurd (cross-built hurd))
-          (mach (with-parameters ((%current-system "i686-linux"))
-                  gnumach))
-          (libc (cross-libc "i586-pc-gnu")))
-      (computed-file "grub.cfg"
-                     #~(call-with-output-file #$output
-                         (lambda (port)
-                           (format port "
-set timeout=2
-search.file ~a/boot/gnumach
-
-menuentry \"GNU\" {
-  multiboot ~a/boot/gnumach root=device:hd0s1
-  module ~a/hurd/ext2fs.static ext2fs \\
-    --multiboot-command-line='${kernel-command-line}' \\
-    --host-priv-port='${host-port}' \\
-    --device-master-port='${device-port}' \\
-    --exec-server-task='${exec-task}' -T typed '${root}' \\
-    '$(task-create)' '$(task-resume)'
-  module ~a/lib/ld.so.1 exec ~a/hurd/exec '$(exec-task=task-create)'
-}\n"
-                                   #+mach #+mach #+hurd
-                                   #+libc #+hurd))))))
+    (hurd-grub-configuration-file #f '() #:system "i586-pc-gnu"))
 
   (define fstab
     (plain-file "fstab"
