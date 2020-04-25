@@ -34,6 +34,7 @@
   #:export (hurd-console-configuration
             hurd-console-service-type
             hurd-etc-service
+            hurd-file-systems-service-type
             hurd-loopback-service-type
             hurd-service->shepherd-service
             hurd-ttys-configuration
@@ -55,6 +56,7 @@
       (($ <openssh-configuration>) (openssh-shepherd-service config))
       (($ <syslog-configuration>) (syslog-shepherd-service config))
       (('loopback) (hurd-loopback-shepherd-service #f))
+      (('file-systems) (hurd-file-systems-shepherd-service #f))
       (('user-processes) (user-processes-shepherd-service '()))
       (_ '()))))
 
@@ -85,6 +87,33 @@ fi\n")))
        ("protocols" ,(file-append net-base "/etc/protocols"))
        ("profile" ,#~#$profile)
        ("hostname" ,(plain-file "hostname" (operating-system-host-name os)))))))
+
+
+;;;
+;;; Dummy hurd-file-systems-shepherd-service, required for user-homes.
+;;;
+
+(define (hurd-file-systems-shepherd-service _)
+  "Return the 'file-systems' Shepherd service."
+
+  (list (shepherd-service
+         (documentation "Dummy for bootstrapping (gnu services) on the Hurd.")
+         (provision '(file-systems))
+         (requirement '())
+         (start #~(const #t))
+         (stop #~(const #t))
+         (respawn? #f))))
+
+(define hurd-file-systems-service-type
+  (service-type
+   (name 'file-systems)
+   (extensions (list (service-extension shepherd-root-service-type
+                                        hurd-file-systems-shepherd-service)))
+   (compose concatenate)
+   (extend first-of-two)
+   (default-value '(file-systems)) ;canary for hurd-service->shepherd-service
+   (description "Dummy service to bootstrap (gnu services) on the
+Hurd.")))
 
 
 ;;;
