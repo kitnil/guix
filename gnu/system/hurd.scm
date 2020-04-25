@@ -89,8 +89,7 @@
         inetutils less net-base openssh shepherd which))
 
 (define %base-services/hurd
-  (list (service user-processes-service-type)
-        (service hurd-console-service-type
+  (list (service hurd-console-service-type
                  (hurd-console-configuration (hurd hurd)))
         (service hurd-ttys-service-type
                  (hurd-ttys-configuration (hurd hurd)))

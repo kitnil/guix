@@ -516,6 +516,14 @@ value of the SYSTEM-SERVICE-TYPE service."
                 ("initrd" ,initrd)
                 ("locale" ,locale))))))   ;used by libc
 
+(define* (hurd-operating-system-directory-base-entries os)
+  "Return the basic entries of the 'system' directory of OS for use as the
+value of the SYSTEM-SERVICE-TYPE service."
+  (let ((locale (operating-system-locale-directory os)))
+    (mlet* %store-monad ((kernel -> (operating-system-kernel os)))
+      (return `(("kernel" ,kernel)
+                ("locale" ,locale))))))
+
 (define (operating-system-default-essential-services os)
   "Return the list of essential services for OS.  These are special services
 that implement part of what's declared in OS are responsible for low-level
@@ -565,18 +573,20 @@ bookkeeping."
                                   (operating-system-firmware os)))))))
 
 (define (hurd-default-essential-services os)
-  (list (service system-service-type '())
-        %boot-service
-        %shepherd-root-service
-        %activation-service
-        (account-service (append (operating-system-accounts os)
-                                 (operating-system-groups os))
-                         (operating-system-skeletons os))
-        (service hurd-file-systems-service-type)
-        (pam-root-service (operating-system-pam-services os))
-        (hurd-etc-service os)
-        (service profile-service-type
-                 (operating-system-packages os))))
+  (let ((entries (hurd-operating-system-directory-base-entries os)))
+    (list (service system-service-type entries)
+          %boot-service
+          %shepherd-root-service
+          %activation-service
+          (service user-processes-service-type '(user-processes))
+          (account-service (append (operating-system-accounts os)
+                                   (operating-system-groups os))
+                           (operating-system-skeletons os))
+          (service hurd-file-systems-service-type)
+          (pam-root-service (operating-system-pam-services os))
+          (hurd-etc-service os)
+          (service profile-service-type
+                   (operating-system-packages os)))))
 
 (define* (operating-system-services os)
   "Return all the services of OS, including \"essential\" services."
