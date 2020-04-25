@@ -26,6 +26,7 @@
   #:use-module (guix packages)
   #:use-module (guix profiles)
   #:use-module (guix utils)
+  #:use-module (gnu bootloader)
   #:use-module (gnu bootloader grub)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages base)
@@ -56,6 +57,7 @@
   #:use-module (gnu system vm)
   #:export (cross-hurd-image
             hurd-grub-configuration-file
+            hurd-grub-minimal-bootloader
             %base-packages/hurd
             %base-services/hurd
             %hurd-default-operating-system))
@@ -105,7 +107,6 @@
                                        #:key
                                        (system (%current-system))
                                        (old-entries '()))
-  (pk "hurd-grub-configuration-file")
   (let ((hurd (if (equal? system (%current-system))
                   hurd
                   (with-parameters ((%current-target-system system))
@@ -135,10 +136,17 @@ menuentry \"GNU\" {
                                  #+mach #+mach #+hurd
                                  #+libc #+hurd))))))
 
+(define hurd-grub-minimal-bootloader
+  (bootloader
+   (inherit grub-minimal-bootloader)
+   (configuration-file-generator hurd-grub-configuration-file)))
+
 (define %hurd-default-operating-system
   (operating-system
     (host-name "guixygnu")
-    (bootloader #f)
+    (bootloader (bootloader-configuration
+                 (bootloader hurd-grub-minimal-bootloader)
+                 (target "/dev/vda")))
     (kernel hurd)
     (initrd-modules '())
     (file-systems '())
