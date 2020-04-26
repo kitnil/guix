@@ -32,7 +32,7 @@
             port-ascii-armored?
 
             openpgp-signature?
-            openpgp-signature-issuer
+            openpgp-signature-issuer-key-id
             openpgp-signature-issuer-fingerprint
             openpgp-signature-public-key-algorithm
             openpgp-signature-hash-algorithm
@@ -479,7 +479,7 @@ writes to PORT the value 42 as an 8-bit integer and the value #x7777 as a
 (define-record-type <openpgp-signature>
   (make-openpgp-signature version type pk-algorithm hash-algorithm hashl16
                           append-data hashed-subpackets unhashed-subpackets
-                          value)
+                          value issuer issuer-fingerprint)
   openpgp-signature?
   (version               openpgp-signature-version)
   (type                  openpgp-signature-type)
@@ -489,19 +489,9 @@ writes to PORT the value 42 as an 8-bit integer and the value #x7777 as a
   (append-data           openpgp-signature-append-data) ;append to data when hashing
   (hashed-subpackets     openpgp-signature-hashed-subpackets)
   (unhashed-subpackets   openpgp-signature-unhashed-subpackets)
-  (value                 openpgp-signature-value))
-
-(define (openpgp-signature-issuer sig)
-  (cond ((assq 'issuer (openpgp-signature-unhashed-subpackets sig)) => cdr)
-        ;; XXX: is the issuer always in the unhashed subpackets?
-        (else #f)))
-
-(define (openpgp-signature-issuer-fingerprint sig)
-  "When it's available, return the fingerprint, a bytevector, or the issuer of
-SIG.  Otherwise, return #f."
-  (or (assoc-ref (openpgp-signature-hashed-subpackets sig) 'issuer-fingerprint)
-      (assoc-ref (openpgp-signature-unhashed-subpackets sig)
-                 'issuer-fingerprint)))
+  (value                 openpgp-signature-value)
+  (issuer                openpgp-signature-issuer-key-id)       ;integer | #f
+  (issuer-fingerprint    openpgp-signature-issuer-fingerprint)) ;bytevector | #f
 
 (define (openpgp-signature-creation-time sig)
   (cond ((assq 'signature-ctime (openpgp-signature-hashed-subpackets sig))
@@ -583,7 +573,7 @@ the issuer's OpenPGP public key extracted from KEYRING."
 
   ;; TODO: Support SIGNATURE-TEXT.
   (if (= (openpgp-signature-type sig) SIGNATURE-BINARY)
-      (let* ((issuer   (openpgp-signature-issuer sig))
+      (let* ((issuer   (openpgp-signature-issuer-key-id sig))
              (key-data (lookup-key-by-id keyring issuer)))
         ;; Find the primary key or subkey that made the signature.
         (let ((key (find (lambda (k)
@@ -663,7 +653,8 @@ FINGERPRINT, a bytevector."
                                    (list (cons 'signature-ctime ctime))
                                    ;; Unhashed subpackets
                                    (list (cons 'issuer keyid))
-                                   value))))
+                                   value
+                                   keyid #f))))
       ((4)
        (let*-values (((type pkalg halg) (get-integers p u8 u8 u8))
                      ((hashed-subpackets)
@@ -709,7 +700,8 @@ FINGERPRINT, a bytevector."
                                      append-data
                                      hashed-subpackets
                                      unhashed-subpackets
-                                     value)))))
+                                     value
+                                     issuer-key-id issuer)))))
       (else
        (print "Unsupported signature version: " version)
        'unsupported-signature-version))))
