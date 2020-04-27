@@ -7382,6 +7382,30 @@ special variables.  An interface to GitLab’s CI file linter is also provided
 via @code{gitlab-ci-lint}.")
     (license license:gpl3+)))
 
+(define-public emacs-gitlab-snip-helm
+  (let ((commit "9cd1690733602128c85109f1d313811502ff834a"))
+    (package
+      (name "emacs-gitlab-snip-helm")
+      (version (git-version "0.0.1" "1" commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://cgit.duckdns.org/git/emacs/gitlab-snip-helm")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "10b4n813vy2wc5xjp648ma9cch8h1ayqpkgnvszjx3k657srpnfx"))))
+      (build-system emacs-build-system)
+      (propagated-inputs
+       `(("emacs-dash" ,emacs-dash)
+         ("emacs-helm" ,emacs-helm)))
+      (home-page "https://gitlab.com/sasanidas/gitlab-snip-helm/")
+      (synopsis "GitLab snippet API interaction for Emacs")
+      (description "This package provides GitLab snippet API interaction for
+Emacs.")
+      (license license:gpl3+))))
+
 (define-public emacs-web-mode
   (package
     (name "emacs-web-mode")
