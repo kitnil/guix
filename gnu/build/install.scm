@@ -63,7 +63,9 @@ directory TARGET."
           (('directory name uid gid)
            (let ((dir (string-append target name)))
              (mkdir-p dir)
-             (chown dir uid gid)))
+             ;; This will fail if this is not run from a VM, ignore those
+             ;; errors.
+             (false-if-exception (chown dir uid gid))))
           (('directory name uid gid mode)
            (loop `(directory ,name ,uid ,gid))
            (chmod (string-append target name) mode))
