@@ -519,8 +519,10 @@ value of the SYSTEM-SERVICE-TYPE service."
 (define* (hurd-operating-system-directory-base-entries os)
   "Return the basic entries of the 'system' directory of OS for use as the
 value of the SYSTEM-SERVICE-TYPE service."
-  (mlet* %store-monad ()
-    (return `())))
+  (let ((locale (operating-system-locale-directory os)))
+    (mlet* %store-monad ((kernel -> (operating-system-kernel os)))
+      (return `(("kernel" ,kernel)
+                ("locale" ,locale))))))
 
 (define (operating-system-default-essential-services os)
   "Return the list of essential services for OS.  These are special services
