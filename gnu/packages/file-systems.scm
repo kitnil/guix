@@ -553,7 +553,8 @@ APFS.")
                #t))))))
     (native-inputs
      `(("attr" ,attr)
-       ("pkg-config" ,pkg-config)))
+       ("pkg-config" ,pkg-config)
+       ("kmod" ,kmod)))
     (inputs
      `(("eudev" ,eudev)
        ("libaio" ,libaio)

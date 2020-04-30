@@ -7,7 +7,7 @@
 (use-modules (gnu) (guix) (srfi srfi-1))
 (use-service-modules desktop networking ssh xorg)
 (use-package-modules bootloaders certs fonts nvi
-                     package-management wget xorg)
+                     package-management wget xorg file-systems disk)
 
 (define vm-image-motd (plain-file "motd" "
 \x1b[1;37mThis is the GNU system.  Welcome!\x1b[0m
@@ -50,7 +50,7 @@ accounts.\x1b[0m
   (users (cons (user-account
                 (name "guest")
                 (comment "GNU Guix Live")
-                (password "")                     ;no password
+                (password (crypt "guest" "salt"))
                 (group "users")
                 (supplementary-groups '("wheel" "netdev"
                                         "audio" "video")))
@@ -62,11 +62,15 @@ accounts.\x1b[0m
 root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
 
-  (packages (append (list font-bitstream-vera nss-certs nvi wget)
+  (packages (append (list font-bitstream-vera nss-certs nvi wget zfs parted)
                     %base-packages))
+
+  (kernel-loadable-modules (list `(,zfs "module")))
 
   (services
    (append (list (service xfce-desktop-service-type)
+
+                 (service openssh-service-type)
 
                  ;; Choose SLiM, which is lighter than the default GDM.
                  (service slim-service-type
