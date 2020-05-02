@@ -11,7 +11,7 @@
 # Copyright © 2017 Arun Isaac <arunisaac@systemreboot.net>
 # Copyright © 2018 Nikita <nikita@n0.is>
 # Copyright © 2018 Julien Lepiller <julien@lepiller.eu>
-# Copyright © 2018 Oleg Pykhalov <go.wigust@gmail.com>
+# Copyright © 2018, 2020 Oleg Pykhalov <go.wigust@gmail.com>
 # Copyright © 2018 Alex Vong <alexvong1995@gmail.com>
 # Copyright © 2019 Efraim Flashner <efraim@flashner.co.il>
 #
@@ -109,6 +109,7 @@ MODULES =					\
   guix/cache.scm				\
   guix/cve.scm					\
   guix/workers.scm				\
+  guix/youtube-dl-download.scm			\
   guix/zlib.scm					\
   guix/lzlib.scm				\
   guix/build-system.scm				\
@@ -216,6 +217,8 @@ MODULES =					\
   guix/build/bournish.scm			\
   guix/build/qt-utils.scm			\
   guix/build/make-bootstrap.scm			\
+  guix/build/youtube-dl.scm			\
+  guix/build/ffmpeg-build-system.scm		\
   guix/search-paths.scm				\
   guix/packages.scm				\
   guix/import/cabal.scm				\
