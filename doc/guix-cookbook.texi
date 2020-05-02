@@ -305,6 +305,7 @@ them.
 
 @menu
 * Packaging Tutorial::         A tutorial on how to add packages to Guix.
+* Video packaging::            Download audio or video and combine them.
 @end menu
 
 @node Packaging Tutorial
@@ -1331,6 +1332,43 @@ The @uref{https://www.gnu.org/software/guix/manual/en/html_node/Defining-Package
 @item
 @uref{https://www.gnu.org/software/guix/guix-ghm-andreas-20130823.pdf, ``GNU Guix: Package without a scheme!''}, by Andreas Enge
 @end itemize
+
+@node Video packaging
+@section Video packaging
+
+You could package audio and video by download them with
+@code{youtube-dl-fetch} and combining with @code{ffmpeg-build-system}:
+
+@lisp
+(define-public video-linuxfest-2019-practical-software-freedom-with-gnu-guix
+  (package
+    (name "video-linuxfest-practical-software-freedom-with-gnu-guix")
+    (version "2019")
+    (source
+     (origin
+       (method youtube-dl-fetch)
+       (uri (youtube-dl-reference
+             (url "https://www.youtube.com/watch?v=YDc7wXe5o98")
+             (format 137)))
+       (file-name (string-append (string-drop name (string-length "video-")) "-" version ".mp4"))
+       (sha256
+        (base32 "1y7sanx9dqncl8ayylawva3xsxm553nnr72jv1fva35mq9saj7wb"))))
+    (build-system ffmpeg-build-system)
+    (inputs
+     `(("audio" ,(origin
+                   (method youtube-dl-fetch)
+                   (uri (youtube-dl-reference
+                         (url "https://www.youtube.com/watch?v=YDc7wXe5o98")
+                         (format 140)))
+                   (file-name (string-append (string-drop name (string-length "video-")) "-" version ".m4a"))
+                   (sha256
+                    (base32 "1wyg0p5h4i3xxrbxim8xnmfplqzp1jid6sf5v0whr6pym6kzxq18"))))))
+    (home-page "https://ohiolinux.org/")
+    (synopsis "Video introduction to GNU Guix on LinuxFest 2019")
+    (description "This package provides a video material
+Introduction to GNU Guix on LinuxFest 2019")
+    (license license:cc-by-sa4.0)))
+@end lisp
 
 @c *********************************************************************
 @node System Configuration
