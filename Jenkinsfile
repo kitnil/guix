@@ -23,7 +23,7 @@ String GUIX_GIT_PULL_COMMAND = "git pull --rebase ${GUIX_GIT_PULL_REMOTE}"
 String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
 
 pipeline {
-    agent { label "master" }
+    agent { label "guixsd" }
     environment { GUIX_PACKAGE_PATH = "" }
     triggers {
         cron("H 14 * * 1-5")
