@@ -1,80 +1,55 @@
-List<String> node_labels = ["guix", "guix nixbld", "guix vm"]
-
-String LOCAL_WORKTREE = "/home/oleg/src/guix"
-String MASTER_WORKTREE = "${LOCAL_WORKTREE}-master"
-String LOCAL_MASTER_WORKTREE = "/home/oleg/src/guix-wip-local-master"
-List<String> build_command = [
-    "set -e -x",
-    "./bootstrap",
-    "./configure --localstatedir=/var --prefix=",
-    "make"
-]
-List<String> packages = ["help2man", "guile-sqlite3", "guile-gcrypt"]
-String BUILD_COMMAND = """sh -c '${build_command.join("; ")}'"""
-String BUILD_SCRIPT = [
-    "guix", "environment", "--pure", "guix", "--ad-hoc", packages.join(' '),
-    "--", BUILD_COMMAND
-].join(" ")
-
-
-String GUIX_GIT_PULL_REMOTE = "upstream"
-String GUIX_GIT_PULL_BRANCH = "wip-local"
-String GUIX_GIT_PULL_COMMAND = "git pull --rebase ${GUIX_GIT_PULL_REMOTE}"
-String GUIX_GIT_REPOSITORY = "https://cgit.duckdns.org/git/guix/guix"
+String GIT_LOCAL_WORKTREE = "$Constants.homeDir/src/guix"
+List<String> BUILD_PACKAGES = ["help2man", "guile-sqlite3", "guile-gcrypt"]
+String BUILD_COMMAND = """
+    guix environment --pure guix --ad-hoc ${BUILD_PACKAGES.join(' ')} \
+      -- sh -c "(set -e -x; ./bootstrap; ./configure --localstatedir=/var --prefix=; make) \
+        || (set -e -x; make clean-go; ./bootstrap; ./configure --localstatedir=/var --prefix=; make)"
+"""
 
 pipeline {
-    agent { label "guixsd" }
+    agent { label "master" }
     environment { GUIX_PACKAGE_PATH = "" }
-    triggers {
-        cron("H 14 * * 1-5")
-    }
-    parameters {
-        booleanParam name: "INVOKE_GIT_PULL", defaultValue: true,
-        description: 'Update Guix Git repository'
-    }
+    triggers { cron("H 14 * * 1-5") }
     stages {
-        stage("Invoking git clone") {
+        stage("Fetch source") {
             steps {
-                parallelGitClone url: GUIX_GIT_REPOSITORY,
-                nodeLabels: node_labels, dir: LOCAL_WORKTREE,
-                branch: GUIX_GIT_PULL_BRANCH
+                parallelGitClone (
+                    nodeLabels: ["guix"],
+                    url: Constants.gitGuixUrl,
+                    branch: "wip-local",
+                    dir: GIT_LOCAL_WORKTREE
+                )
             }
         }
-        stage("Invoking git pull") {
-            when { expression { params.INVOKE_GIT_PULL } }
+        stage("Build guix") {
             steps {
-                // dir(LOCAL_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
-                dir(LOCAL_MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
-                dir(MASTER_WORKTREE) { sh GUIX_GIT_PULL_COMMAND }
+                parallelSh (
+                    nodeLabels: ["guix"],
+                    dir: GIT_LOCAL_WORKTREE,
+                    cmd: BUILD_COMMAND
+                )
             }
         }
-        stage('Trigger jobs') {
+        stage("Build guix-*") {
+            agent { label "guixsd" }
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                dir("$Constants.homeDir/src/guix-master") {
+                    sh "git pull --rebase upstream"
+                    sh BUILD_COMMAND
+                }
+                dir("$Constants.homeDir/src/guix-wip-local-master") {
+                    sh "git pull --rebase upstream"
+                    sh BUILD_COMMAND
+                }
+            }
+        }
+        stage("Trigger dotfiles") {
+            steps {
+                catchError(buildResult: "SUCCESS", stageResult: "FAILURE") {
                     build job: "../../wigust/dotfiles/master"
                 }
             }
         }
-        stage("Build local worktree") {
-            steps {
-                parallelSh (cmd: BUILD_SCRIPT, nodeLabels: node_labels,
-                            dir: LOCAL_WORKTREE)
-            }
-        }
-        stage("Build master and local master worktree") {
-            steps {
-                dir(MASTER_WORKTREE) {
-                    sh BUILD_SCRIPT
-                }
-                dir(LOCAL_MASTER_WORKTREE) {
-                    sh BUILD_SCRIPT
-                }
-            }
-        }
     }
-    post {
-        always {
-            sendNotifications currentBuild.result
-        }
-    }
+    post { always { sendNotifications currentBuild.result } }
 }
