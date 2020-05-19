@@ -70,6 +70,7 @@
   #:use-module (gnu packages tls)
   #:use-module (gnu packages webkit)
   #:use-module (gnu packages xdisorg)
+  #:use-module (gnu packages game-development)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-19))
 
@@ -12293,3 +12294,38 @@ convolutions, etc.")
 
 (define-public cl-napa-fft3
   (sbcl-package->cl-source-package sbcl-napa-fft3))
+(define-public sbcl-cl-liballegro
+  (let ((commit "decd694b16898e41911d24bb607886422fe94047"))
+    (package
+      (name "sbcl-cl-liballegro")
+      (version "0.2.11")
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/resttime/cl-liballegro.git")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0lzca3v0v18rw81k8rb8s9lcpk5j8p2yh2829c3f40d0b6z1747a"))))
+      (inputs
+       `(("cffi" ,sbcl-cffi)
+         ("cffi-libffi" ,sbcl-cffi-libffi)
+         ("trivial-garbage" ,sbcl-trivial-garbage)
+         ("allegro" ,allegro)))
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'fix-paths
+             (lambda* (#:key inputs #:allow-other-keys)
+               (substitute* "src/library.lisp"
+                 (("'string lib")
+                  (format #f "'string \"~a/lib/\" lib"
+                          (assoc-ref inputs "allegro"))))
+               #t)))))
+      (build-system asdf-build-system/sbcl)
+      (home-page "https://github.com/resttime/cl-liballegro/")
+      (synopsis "Allegro 5 game programming library bindings for Common Lisp")
+      (description "This package provides Allegro 5 game programming library
+bindings for Common Lisp")
+      (license license:bsd-3))))
