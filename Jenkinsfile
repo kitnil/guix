@@ -1,3 +1,5 @@
+def slackMessages = []
+
 pipeline {
     agent { label "master" }
     environment { GUIX_PACKAGE_PATH = "" }
