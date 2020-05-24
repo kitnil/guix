@@ -262,7 +262,8 @@ and provides a \"top-like\" mode (monitoring).")
                                   version ".tar.gz"))
               (sha256
                (base32
-                "0x9zr0x3xvk4qkb6jnda451d5iyrl06cz1bjzjsm0lxvjj3fabyk"))))
+                "0x9zr0x3xvk4qkb6jnda451d5iyrl06cz1bjzjsm0lxvjj3fabyk"))
+              (patches (search-patches "shepherd-supplementary-groups.patch"))))
     (build-system gnu-build-system)
     (arguments
      '(#:configure-flags '("--localstatedir=/var")))
