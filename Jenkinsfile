@@ -12,10 +12,16 @@ pipeline {
                 parallelCall (
                     nodeLabels: ["guix"],
                     procedure: { nodeLabels ->
-                        guix.build(
+                        String repository = "$Constants.homeDir/src/guix"
+                        gitFetch (
                             branch: GIT_BRANCH,
-                            dir: "$Constants.homeDir/src/guix"
+                            url: Constants.gitGuixUrl,
+                            dir: repository
                         )
+                        dir(repository) {
+                            guix.build()
+                            sh "git checkout -- po"
+                        }
                         slackMessages += "Deployed to $Constants.homeDir/src/guix"
                     }
                 )
