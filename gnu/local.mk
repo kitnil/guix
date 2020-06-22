@@ -575,6 +575,7 @@ GNU_SYSTEM_MODULES =				\
 						\
   %D%/services.scm				\
   %D%/services/admin.scm			\
+  %D%/services/autofs.scm                        \
   %D%/services/audio.scm                        \
   %D%/services/auditd.scm			\
   %D%/services/avahi.scm			\
