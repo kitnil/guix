@@ -281,11 +281,6 @@ servers.")
     "The certificate of the machine the daemon is running on. It should be signed
 by the authority given in @code{ca}.")
 
-   (key
-    (string "/etc/openvpn/client.key")
-    "The key of the machine the daemon is running on. It must be the key whose
-certificate is @code{cert}.")
-
    (comp-lzo?
     (boolean #t)
     "Whether to use the lzo compression algorithm.")
