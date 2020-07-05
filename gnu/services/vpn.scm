@@ -276,11 +276,6 @@ servers.")
     (string "/etc/openvpn/ca.crt")
     "The certificate authority to check connections against.")
 
-   (cert
-    (string "/etc/openvpn/client.crt")
-    "The certificate of the machine the daemon is running on. It should be signed
-by the authority given in @code{ca}.")
-
    (comp-lzo?
     (boolean #t)
     "Whether to use the lzo compression algorithm.")
