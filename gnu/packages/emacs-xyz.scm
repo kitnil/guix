@@ -5924,6 +5924,14 @@ organizer.")
       (build-system emacs-build-system)
       (propagated-inputs
        `(("emacs-org" ,emacs-org)))
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'patch
+             (lambda _
+               (substitute* "org-tanglesync.el"
+                 (("\\(goto-char lmark\\)" line)
+                  (string-append line " (org-end-of-line) (forward-char)"))))))))
       (home-page "https://github.com/mtekman/org-tanglesync.el")
       (synopsis "Sync Org source blocks with tangled external files")
       (description "This package automatically pulls changes from source code
