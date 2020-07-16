@@ -88,7 +88,7 @@
 (define-enumerated-field-type proto
   (udp tcp udp6 tcp6))
 (define-enumerated-field-type dev
-  (tun tap))
+  (tun tapvpn))
 
 (define key-usage? boolean?)
 (define (serialize-key-usage field-name value)
