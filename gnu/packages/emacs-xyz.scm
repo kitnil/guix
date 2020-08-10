@@ -7891,6 +7891,29 @@ duplicated a lot.  Org-mode makes the book keeping of tags and feeds
 much easier.")
       (license license:gpl3+))))
 
+(define-public emacs-elfeed-score
+  (package
+    (name "emacs-elfeed-score")
+    (version "0.4.4")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/sp1ff/elfeed-score")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "1vhchbyy3c79cgvdz12wnryklr5g1bwh02d604zj2wca3b0199w4"))))
+    (build-system emacs-build-system)
+    (propagated-inputs
+      `(("emacs-elfeed" ,emacs-elfeed)))
+    (home-page "https://github.com/sp1ff/elfeed-score/")
+    (synopsis "Gnus-style scoring for Elfeed")
+    (description "@code{elfeed-score} is an add-on for @code{elfeed} which
+brings @code{gnus} like scoring feeds.")
+    (license license:gpl3+)))
+
 (define-public emacs-el-x
   (package
     (name "emacs-el-x")
