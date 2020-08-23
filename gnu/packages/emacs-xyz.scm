@@ -20083,7 +20083,7 @@ files in Elisp.")
 (define-public emacs-lsp-java
   (package
     (name "emacs-lsp-java")
-    (version "2.2")
+    (version "3.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -20092,7 +20092,7 @@ files in Elisp.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0hcnvbyaqyypgby1bfj4zbrbq97amk8hfx0sj4w73rl46yf4jk3j"))))
+                "1grcapmd9k0a128vhgpy2a5dh6iqmf8bdvz0hykl4v7d55vcm423"))))
     (build-system emacs-build-system)
     (propagated-inputs
       `(("emacs-lsp-mode" ,emacs-lsp-mode)
