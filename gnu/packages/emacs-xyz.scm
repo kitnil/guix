@@ -19354,6 +19354,29 @@ Nix expressions.  It supports syntax highlighting, indenting and refilling of
 comments.")
     (license license:lgpl2.1+)))
 
+(define-public emacs-nix-buffer
+  (package
+    (name "emacs-nix-buffer")
+    (version "3.1.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/shlevy/nix-buffer")
+             (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0b01b4l9c70sad5r5py5hvg7s6k6idwwp0pv3rn8rj0fq5wlyixj"))))
+    (build-system emacs-build-system)
+    (propagated-inputs
+     `(("emacs-f" ,emacs-f)))
+    (home-page "https://github.com/shlevy/nix-buffer")
+    (synopsis "Set up Emacs buffer environments with Nix")
+    (description "This package provides @code{nix-buffer}, to modify your buffer
+according to a directory-local Nix expression.")
+    (license license:expat)))
+
 (define-public emacs-libmpdel
   (package
     (name "emacs-libmpdel")
