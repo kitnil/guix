@@ -27,6 +27,7 @@
   #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-26)
   #:use-module ((guix utils) #:select (%current-system))
+  #:use-module (gnu packages linux)
   #:export (pam-service
             pam-service-name
             pam-service-account
@@ -229,7 +230,13 @@ When LOGIN-UID? is true, require the 'pam_loginuid' module; that module sets
                                 (control "required")
                                 (module "pam_unix.so")
                                 (arguments '("nullok")))
-                               unix))))
+                               unix)
+                           (pam-entry
+                            (control "required")
+                            (module (file-append pam-gnupg "/lib/security/pam_gnupg.so"))
+                            (arguments '("debug"))
+                            ;; (arguments '("store-only"))
+                            ))))
        (password (list (pam-entry
                         (control "required")
                         (module "pam_unix.so")
@@ -247,6 +254,10 @@ When LOGIN-UID? is true, require the 'pam_loginuid' module; that module sets
                                (control "required")
                                (module "pam_loginuid.so")))
                         '())
+                  ,@(list (pam-entry
+                           (control "required")
+                           (module (file-append pam-gnupg "/lib/security/pam_gnupg.so"))
+                           (arguments '("debug"))))
                   ,env ,unix))))))
 
 (define (rootok-pam-service command)
