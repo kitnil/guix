@@ -9280,3 +9280,35 @@ libraries are found or why they cannot be located.")
 gestures you make on your touchpad or touchscreen into visible actions in your
 desktop.")
     (license license:gpl3+)))
+
+(define-public linux-libre-5.13-version "5.13.16")
+(define-public linux-libre-5.13-gnu-revision "gnu1")
+(define deblob-scripts-5.13
+  (linux-libre-deblob-scripts
+   linux-libre-5.13-version
+   linux-libre-5.13-gnu-revision
+   (base32 "0hj3w3vh1rj24xgl4v72mr6vaz1qzsnc5xzdfjga1zy84bw8lhkp")
+   (base32 "1a0k9i8gnzkyvfr80f8xw2fnxfwddhz1pzicz9fh0y3jzzkzk45p")))
+(define-public linux-libre-5.13-pristine-source
+  (let ((version linux-libre-5.13-version)
+        (hash (base32 "0yxbcd1k4l4cmdn0hzcck4s0yvhvq9fpwp120dv9cz4i9rrfqxz8")))
+   (make-linux-libre-source version
+                            (%upstream-linux-source version hash)
+                            deblob-scripts-5.13)))
+
+(define-public linux-libre-5.13-source
+  (source-with-patches linux-libre-5.13-pristine-source
+                       (list %boot-logo-patch
+                             %linux-libre-arm-export-__sync_icache_dcache-patch)))
+
+(define-public linux-libre-headers-5.13
+  (make-linux-libre-headers* linux-libre-5.13-version
+                             linux-libre-5.13-gnu-revision
+                             linux-libre-5.13-source))
+
+(define-public linux-libre-5.13
+  (make-linux-libre* linux-libre-5.13-version
+                     linux-libre-5.13-gnu-revision
+                     linux-libre-5.13-source
+                     '("x86_64-linux" "i686-linux" "armhf-linux" "aarch64-linux" "riscv64-linux")
+                     #:configuration-file kernel-config))
