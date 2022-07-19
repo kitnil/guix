@@ -1123,6 +1123,8 @@ corresponds to the symbols listed in FLAGS."
        (logior MS_STRICTATIME (loop rest)))
       (('lazy-time rest ...)
        (logior MS_LAZYTIME (loop rest)))
+      (('shared rest ...)
+       (logior MS_SHARED (loop rest)))
       (()
        0))))
 
@@ -1186,6 +1188,9 @@ corresponds to the symbols listed in FLAGS."
         (cond
          ((string-prefix? "nfs" type)
           (mount-nfs source target type flags options))
+         ((memq 'shared (file-system-flags fs))
+          (mount source target type 0 options)
+          (mount "none" target #f MS_SHARED))
          (else
           (mount source target type flags options)))
 

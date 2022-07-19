@@ -121,7 +121,8 @@
     ;; Note: Keep in sync with 'mount-flags->bit-mask'.
     (let ((known-flags '(read-only
                          bind-mount no-suid no-dev no-exec
-                         no-atime strict-atime lazy-time)))
+                         no-atime strict-atime lazy-time
+                         shared)))
       (lambda (flags)
         "Return the subset of FLAGS that is invalid."
         (remove (cut memq <> known-flags) flags))))

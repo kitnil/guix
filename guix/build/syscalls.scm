@@ -49,6 +49,7 @@
             MS_RELATIME
             MS_BIND
             MS_MOVE
+            MS_SHARED
             MS_LAZYTIME
             MNT_FORCE
             MNT_DETACH
@@ -537,6 +538,7 @@ the last argument of `mknod'."
 (define MS_NOATIME         1024)
 (define MS_BIND            4096)
 (define MS_MOVE            8192)
+(define MS_SHARED       1048576)
 (define MS_RELATIME     2097152)
 (define MS_STRICTATIME 16777216)
 (define MS_LAZYTIME    33554432)
@@ -637,7 +639,8 @@ the remaining unprocessed options."
                         ("nodev"      => MS_NODEV)
                         ("noexec"     => MS_NOEXEC)
                         ("relatime"   => MS_RELATIME)
-                        ("noatime"    => MS_NOATIME)))))))
+                        ("noatime"    => MS_NOATIME)
+                        ("shared"     => MS_SHARED)))))))
 
 (define (mount-flags mount)
   "Return the mount flags of MOUNT, a <mount> record, as an inclusive or of
